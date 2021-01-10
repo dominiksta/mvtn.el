@@ -80,7 +80,7 @@ symbol to define the format:
 - ACCURACY = 'hour  : {year}{month}{day}-{hour}
 - ACCURACY = 'minute: {year}{month}{day}-{hour}{minute}
 - ACCURACY = 'second: {year}{month}{day}-{hour}{minute}{second}"
-  (declare (pure t) (side-effect-free t))
+  (declare (side-effect-free t))
   (cond ((eq accuracy 'day)
          (format-time-string "%Y%m%d"))
         ((eq accuracy 'hour)
@@ -95,7 +95,7 @@ symbol to define the format:
   "Returns a field in an mvtn timestamp like this:
 \"{year}{month}{day}[-{hour}[{minute}[{second}]]]\". FIELD may be
 one of 'year, 'month, 'day, 'hour, 'minute or 'second."
-  (declare (pure t) (side-effect-free t))
+  (declare (side-effect-free t))
   (cond ((eq field 'year) (substring timestamp 0 4))
         ((eq field 'month) (substring timestamp 4 6))
         ((eq field 'day) (substring timestamp 6 8))
@@ -107,14 +107,14 @@ one of 'year, 'month, 'day, 'hour, 'minute or 'second."
 
 (defun mvtn-template-for-extension (extension)
   "Return the template in `mvtn-file-extension-templates' for EXTENSION."
-  (declare (pure t) (side-effect-free t))
+  (declare (side-effect-free t))
   (or (cadr (assoc extension mvtn-file-extension-templates))
      (cadr (assoc "" mvtn-file-extension-templates))))
 
 
 (defun mvtn-substitute-template (template-string title date timestamp)
   "Substitute {title} for TITLE and {date} for DATE in TEMPLATE-STRING."
-  (declare (pure t) (side-effect-free t))
+  (declare (side-effect-free t))
   ;; TODO There has to be a more elegant way of doing this:
   (let* ((substituted-title
           (replace-regexp-in-string "\{title\}" title template-string))
