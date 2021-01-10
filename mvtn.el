@@ -70,8 +70,23 @@ Available substitutions:
 {timestamp}: The timestamp/id of the note"
   :type '(alist :value-type (group string)) :group 'mvtn)
 
+(defcustom mvtn-list-files-command
+  (if (executable-find find-program)
+      (format "%s . -type f" (executable-find find-program))
+    nil)
+  "When this is nil, use emacs internal functions to list
+filenames. If this is set to a string, mvtn will instead call the
+defined program and expect an output of one filename per
+line. This can significantly speed up completion for inserting
+links or opening files. The actual filtering will always be
+performed in elisp, since it is in my experience fast enough to
+search through more than 100k files."
+  :type 'string :group 'mvtn)
+
+
 (defvar mvtn--link-regexp "\\^\\^[[:digit:]]\\{8\\}-[[:digit:]]\\{6\\}.*\\^\\^"
   "A regexp matching valid mvtn links.")
+
 
 (defun mvtn-current-timestamp (accuracy)
   "Returns a timestamp for use in generating mvtn filenames. ACCURACY is a
@@ -133,6 +148,12 @@ one of 'year, 'month, 'day, 'hour, 'minute or 'second."
       (mkdir dir-name t))
     dir-name))
 
+(defun mvtn-list-files ()
+  (let ((default-directory mvtn-note-directory))
+    (if mvtn-list-files-command
+        (split-string (shell-command-to-string mvtn-list-files-command)
+                      "\n" t)
+      (directory-files-recursively "." ""))))
 
 (defun mvtn-create-new-file (title tags)
   "Creates a new mvtn note file in
@@ -196,6 +217,7 @@ prompts for disambiguation."
     (find-file target)))
 
 
+;;;###autoload
 (defun mvtn-follow-link-at-point ()
   "Follow the mvtn link under point."
   (interactive)
@@ -208,6 +230,14 @@ prompts for disambiguation."
         (mvtn-follow-link (buffer-substring-no-properties
                            (match-beginning 0) (match-end 0)))
       (error "No link under point"))))
+
+
+;;;###autoload
+(defun mvtn-insert-link ()
+  "Prompt for a note to insert a link to. Supports completion."
+  (interactive)
+  (let ((answer (completing-read "Insert link to: " (mvtn-list-files))))
+    (insert (concat "^^" (substring answer 7) "^^"))))
 
 
 ;;;###autoload
