@@ -78,7 +78,7 @@ scalability."
 
 (defcustom mvtn-list-files-command
   (if (executable-find find-program)
-      (format "%s . -type f" (executable-find find-program))
+      (format "%s * -type f -print" (executable-find find-program))
     nil)
   "When this is nil, use emacs internal functions to list
 filenames. If this is set to a string, mvtn will instead call the
@@ -167,7 +167,8 @@ recursively. Limit to `mvtn-search-years' unless ALL is non-nil."
                                (split-string (shell-command-to-string
                                               mvtn-list-files-command)
                                              "\n" t)
-                             (directory-files-recursively "." ""))
+                             (mapcar (lambda (el) (substring el 2))
+                                     (directory-files-recursively "." "")))
                          nil)))
         (setq result (append result filelist))))
     result))
@@ -255,7 +256,7 @@ prompts for disambiguation."
   "Prompt for a note to insert a link to. Supports completion."
   (interactive)
   (let ((answer (completing-read "Insert link to: " (mvtn-list-files))))
-    (insert (concat "^^" (substring answer 7) "^^"))))
+    (insert (concat "^^" answer "^^"))))
 
 
 ;;;###autoload
@@ -282,7 +283,7 @@ the buffer of the new note."
   (interactive)
   (let* ((default-directory mvtn-note-directory)
          (answer (completing-read "Open note: " (mvtn-list-files))))
-    (find-file answer)))
+    (find-file (format "%s/%s" (mvtn-timestamp-field answer 'year) answer))))
 
 
 (provide 'mvtn)
