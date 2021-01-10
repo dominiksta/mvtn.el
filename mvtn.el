@@ -70,6 +70,12 @@ Available substitutions:
 {timestamp}: The timestamp/id of the note"
   :type '(alist :value-type (group string)) :group 'mvtn)
 
+(defcustom mvtn-search-years 3
+  "Search in mvtn is by default limited to the previous n
+years (including the current year). This is done for long-term
+scalability."
+  :type 'number :group 'mvtn)
+
 (defcustom mvtn-list-files-command
   (if (executable-find find-program)
       (format "%s . -type f" (executable-find find-program))
@@ -148,12 +154,24 @@ one of 'year, 'month, 'day, 'hour, 'minute or 'second."
       (mkdir dir-name t))
     dir-name))
 
-(defun mvtn-list-files ()
-  (let ((default-directory mvtn-note-directory))
-    (if mvtn-list-files-command
-        (split-string (shell-command-to-string mvtn-list-files-command)
-                      "\n" t)
-      (directory-files-recursively "." ""))))
+
+(defun mvtn-list-files (&optional all)
+  "Return a list of all files in `mvtn-note-directory'
+recursively. Limit to `mvtn-search-years' unless ALL is non-nil."
+  (let ((result '()))
+    (dotimes (n (if all 50 mvtn-search-years))
+      (let* ((working-year (- (string-to-number (format-time-string "%Y")) n))
+             (default-directory (format "%s/%s" mvtn-note-directory working-year))
+             (filelist (if (file-exists-p default-directory)
+                           (if mvtn-list-files-command
+                               (split-string (shell-command-to-string
+                                              mvtn-list-files-command)
+                                             "\n" t)
+                             (directory-files-recursively "." ""))
+                         nil)))
+        (setq result (append result filelist))))
+    result))
+
 
 (defun mvtn-create-new-file (title tags)
   "Creates a new mvtn note file in
