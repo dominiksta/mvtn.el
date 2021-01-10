@@ -32,6 +32,7 @@
 
 ;;; Code:
 (eval-when-compile (require 'subr-x))
+(require 'seq)
 
 
 (defcustom mvtn-note-directory (expand-file-name "~/mvtn")
@@ -69,6 +70,8 @@ Available substitutions:
 {timestamp}: The timestamp/id of the note"
   :type '(alist :value-type (group string)) :group 'mvtn)
 
+(defvar mvtn--link-regexp "\\^\\^[[:digit:]]\\{8\\}-[[:digit:]]\\{6\\}.*\\^\\^"
+  "A regexp matching valid mvtn links.")
 
 (defun mvtn-current-timestamp (accuracy)
   "Returns a timestamp for use in generating mvtn filenames. ACCURACY is a
@@ -88,11 +91,26 @@ symbol to define the format:
          (format-time-string "%Y%m%d-%H%M%S"))))
 
 
+(defun mvtn-timestamp-field (timestamp field)
+  "Returns a field in an mvtn timestamp like this:
+\"{year}{month}{day}[-{hour}[{minute}[{second}]]]\". FIELD may be
+one of 'year, 'month, 'day, 'hour, 'minute or 'second."
+  (declare (pure t) (side-effect-free t))
+  (cond ((eq field 'year) (substring timestamp 0 4))
+        ((eq field 'month) (substring timestamp 4 6))
+        ((eq field 'day) (substring timestamp 6 8))
+        ((and (eq field 'hour) (>= (length timestamp) 11)) (substring timestamp 9 11))
+        ((and (eq field 'minute) (>= (length timestamp) 13)) (substring timestamp 11 13))
+        ((and (eq field 'second) (>= (length timestamp) 15)) (substring timestamp 13 15))
+        (t nil)))
+
+
 (defun mvtn-template-for-extension (extension)
   "Return the template in `mvtn-file-extension-templates' for EXTENSION."
   (declare (pure t) (side-effect-free t))
   (or (cadr (assoc extension mvtn-file-extension-templates))
      (cadr (assoc "" mvtn-file-extension-templates))))
+
 
 (defun mvtn-substitute-template (template-string title date timestamp)
   "Substitute {title} for TITLE and {date} for DATE in TEMPLATE-STRING."
@@ -140,6 +158,56 @@ Example:
                     title (format-time-string "%Y-%m-%d") timestamp))
          (buf (find-file-noselect file-name)))
     (with-current-buffer buf (insert template) (save-buffer)) buf))
+
+
+(defun mvtn-link-targets (link)
+  "Determine the target file of the given LINK. The only relevant
+part of a link for determining this target is the id aka
+timestamp. Other parts of the link are ignored. This is to allow
+renaming of files even without automated tooling. As long as the
+timestamp of the target file is untouched, links to it will not
+break.
+
+Returns a *list* of targets matching the timestamp in order to
+catch synchronisation conflicts of some tools such as nextcloud
+or syncthing.
+
+Example:
+(mvtn-link-targets \"^^20210110-000548 ABCDEFGBLABLA.asd^^\")
+-> \"/path/to/notes/2020/20210110-000548 Branching in Subversion.org\""
+  (when (not (string-match-p mvtn--link-regexp link)) (error "Invalid mvtn link"))
+  (let* ((timestamp (substring link 2 17))
+         (year-dir (format "%s/%s/" mvtn-note-directory
+                           (mvtn-timestamp-field timestamp 'year))))
+    (mapcar (lambda (el) (concat year-dir el))
+            (seq-filter (lambda (filename) (string-prefix-p timestamp filename))
+                        (directory-files year-dir)))))
+
+
+(defun mvtn-follow-link (link)
+  "Follows the mvtn link LINK. If multiple matches exists,
+prompts for disambiguation."
+  (let* ((matches (mvtn-link-targets link))
+         (target (cond ((> (length matches) 1)
+                        (completing-read "Pick match: " matches))
+                       ((= (length matches) 1)
+                        (car matches))
+                       (t (error "No matches found for link")))))
+    (find-file target)))
+
+
+(defun mvtn-follow-link-at-point ()
+  "Follow the mvtn link under point."
+  (interactive)
+  (save-excursion
+    ;; Move to the beginning of the link
+    (cond ((looking-at "\\^\\^[[:digit:]]") nil)
+          ((looking-at "\\^[[:digit:]]") (backward-char))
+          (t (search-backward "^^" (point-at-bol) t)))
+    (if (looking-at mvtn--link-regexp)
+        (mvtn-follow-link (buffer-substring-no-properties
+                           (match-beginning 0) (match-end 0)))
+      (error "No link under point"))))
 
 
 ;;;###autoload
