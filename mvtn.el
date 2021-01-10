@@ -258,6 +258,15 @@ the buffer of the new note."
     (switch-to-buffer (mvtn-create-new-file title tags))))
 
 
+;;;###autoload
+(defun mvtn-open-note ()
+  "Opens a note from `mvtn-note-directory'. Supports completion."
+  (interactive)
+  (let* ((default-directory mvtn-note-directory)
+         (answer (completing-read "Open note: " (mvtn-list-files))))
+    (find-file answer)))
+
+
 (provide 'mvtn)
 
 ;;; mvtn.el ends here
