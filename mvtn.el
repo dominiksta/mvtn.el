@@ -55,10 +55,10 @@ file."
 Date: {date}
 <!-- mvtn_original_title :: {title} -->
 <!-- mvtn_original_id :: {timestamp} -->\n\n")
-    ("" "title          : {title}
-date :: {date}
-original_title :: {title}
-original_id :: {timestamp}
+    ("" "title: {title}
+date: {date}
+mvtn_original_title :: {title}
+mvtn_original_id :: {timestamp}
 ----------------------------------------------------------------------\n\n"))
   "An associative list of templates for new files by file
 extension in mvtn. When an extension is not matched, the fallback
