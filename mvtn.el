@@ -80,6 +80,14 @@ years (including the current year). This is done for long-term
 scalability."
   :type 'number :group 'mvtn)
 
+(defcustom mvtn-search-function 'mvtn-search-full-text--grep
+  "The function used in mvtn search commands
+`mvtn-search-full-text'. Its first argument should be the string
+to search for and the second argument a list of directories (as
+strings) to exclude from the search. By default,
+`mvtn-search-full-text--grep' is used."
+  :type 'symbol :group 'mvtn)
+
 (defcustom mvtn-list-files-command
   (if (executable-find find-program)
       (format "%s * -type f -print" (executable-find find-program))
@@ -238,6 +246,32 @@ prompts for disambiguation."
                         (car matches))
                        (t (error "No matches found for link")))))
     (find-file target)))
+
+
+(defun mvtn-search-full-text--grep (string exclude-dirs)
+  "Searches STRING using `grep' in `default-directory', excluding
+directories specified as a list of strings in DIRS."
+  (grep (concat (executable-find "grep") " -nH --null -r "
+                (mapconcat (lambda (dir) (format "--exclude-dir=\"%s\"" dir))
+                           exclude-dirs " ")
+                " " string)))
+
+
+(defun mvtn-search-full-text (string &optional all)
+  "Search for STRING in `mvtn-note-directory', using
+`mvtn-search-function', excluding directories according to
+`mvtn-search-years'."
+  (interactive "MSearch: \nP")
+  (let* ((default-directory mvtn-note-directory)
+         (current-year (string-to-number (format-time-string "%Y")))
+         (exclude-dirs
+          (seq-filter (lambda (dir) (<= dir (- current-year mvtn-search-years)))
+                      (mapcar 'string-to-number
+                              (directory-files mvtn-note-directory nil
+                                               "^[[:digit:]]\\{4\\}$")))))
+    (if all
+        (funcall mvtn-search-function string nil)
+      (funcall mvtn-search-function string exclude-dirs))))
 
 
 ;;;###autoload
