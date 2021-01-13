@@ -67,7 +67,11 @@ associated with the empty string (\"\") is used.
 Available substitutions:
 {title}    : The notes title
 {date}     : The notes date of creation
-{timestamp}: The timestamp/id of the note"
+{timestamp}: The timestamp/id of the note
+
+The first lines of these templates should not be changed, as they
+are required for some functions such as
+`mvtn-rename-current-file'."
   :type '(alist :value-type (group string)) :group 'mvtn)
 
 (defcustom mvtn-search-years 3
@@ -234,6 +238,37 @@ prompts for disambiguation."
                         (car matches))
                        (t (error "No matches found for link")))))
     (find-file target)))
+
+
+;;;###autoload
+(defun mvtn-rename-current-file (name)
+  "Changes the title depending on the major-mode and renames the
+file. In org-mode, it uses \"#+TITLE:\" to look for the title. In
+markdown-mode, it looks for the first top-level headline (a line
+starting with \"# \") and in any other mode it looks for the
+first occurence of \"title: \"."
+  (interactive "MNew filename: ")
+  (let* ((old-orig (file-name-nondirectory (buffer-file-name (current-buffer))))
+         (old-timestamp (substring old-orig 0 15))
+         (old-ext (file-name-extension old-orig))
+         (old-name+tags (substring old-orig 16 (- -1 (length old-ext))))
+         (old-name (car (split-string old-name+tags " -- ")))
+         (old-tags (cadr (split-string old-name+tags " -- ")))
+         (new (format "%s %s%s.%s" old-timestamp name
+                      (if old-tags (concat " -- " old-tags) "") old-ext)))
+    (rename-file old-orig new)
+    (print (format "(rename-file %s %s)" old-orig new))
+    (rename-buffer new)
+    (set-visited-file-name new))
+  (save-excursion
+    (goto-char (point-min))
+    (let ((case-fold-search nil))
+      (cond ((eq major-mode 'org-mode) (re-search-forward "^#\\+TITLE: "))
+            ((eq major-mode 'markdown-mode) (re-search-forward "^# "))
+            (t (re-search-forward "^title: "))))
+    (kill-line)
+    (insert name)
+    (save-buffer)))
 
 
 ;;;###autoload
