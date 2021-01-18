@@ -90,7 +90,8 @@ strings) to exclude from the search. By default,
   :type 'symbol :group 'mvtn)
 
 (defcustom mvtn-list-files-command
-  (if (executable-find find-program)
+  (if (and (not (eq system-type 'windows-nt))
+         (executable-find find-program))
       (format "%s * -type f -print" (executable-find find-program))
     nil)
   "When this is nil, use emacs internal functions to list
@@ -99,7 +100,9 @@ defined program and expect an output of one filename per
 line. This can significantly speed up completion for inserting
 links or opening files. The actual filtering will always be
 performed in elisp, since it is in my experience fast enough to
-search through more than 100k files."
+search through more than 100k files.
+
+Defaults to nil on windows."
   :type 'string :group 'mvtn)
 
 
