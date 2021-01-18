@@ -33,6 +33,7 @@
 ;;; Code:
 (eval-when-compile (require 'subr-x))
 (require 'seq)
+(require 'grep)
 
 
 (defcustom mvtn-note-directory (expand-file-name "~/mvtn")
