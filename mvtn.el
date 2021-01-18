@@ -268,6 +268,7 @@ directories specified as a list of strings in DIRS."
                   " " (shell-quote-argument string)))))
 
 
+;;;###autoload
 (defun mvtn-search-full-text (string &optional all)
   "Search for STRING in `mvtn-note-directory', using
 `mvtn-search-function', excluding directories according to
