@@ -255,10 +255,17 @@ prompts for disambiguation."
 (defun mvtn-search-full-text--grep (string exclude-dirs)
   "Searches STRING using `grep' in `default-directory', excluding
 directories specified as a list of strings in DIRS."
-  (grep (concat (executable-find "grep") " -nH --null -r "
-                (mapconcat (lambda (dir) (format "--exclude-dir=\"%s\"" dir))
-                           exclude-dirs " ")
-                " " string)))
+  ;; `grep-use-null-device' is only useful when -H is not an option and only one
+  ;; file is searched. Although -H is apparently not posix-compliant, it is
+  ;; included in both BSD and GNU grep. I therefore hereby declare that this
+  ;; function shall only work with those implementations of grep. When
+  ;; `grep-use-null-device' remains enabled, it causes problems when using
+  ;; compatibility layers like cygwin.
+  (let ((grep-use-null-device nil))
+    (grep (concat (executable-find "grep") " -nH --null -r "
+                  (mapconcat (lambda (dir) (format "--exclude-dir=\"%s\"" dir))
+                             exclude-dirs " ")
+                  " " (shell-quote-argument string)))))
 
 
 (defun mvtn-search-full-text (string &optional all)
