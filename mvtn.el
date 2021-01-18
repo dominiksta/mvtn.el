@@ -287,6 +287,20 @@ directories specified as a list of strings in DIRS."
 
 
 ;;;###autoload
+(defun mvtn-search-backlinks (&optional all file)
+  "Uses `mvtn-search-full-text' to look for backlinks to the
+given FILE (defaults to the file opened in the current
+buffer). If ALL is non-nil (can be set through a universal
+argument), then `mvtn-search-years' is ignored."
+  (interactive "P")
+  (when (not file) (setq file (file-name-nondirectory buffer-file-name)))
+  (when (not (string-match-p "^[[:digit:]]\\{8\\}-[[:digit:]]\\{6\\}" file))
+    (error "Invalid mvtn filename. Cancelled backlink search."))
+  (let ((date-id (substring file 0 15)))
+    (mvtn-search-full-text (concat "\\^\\^" date-id) all)))
+
+
+;;;###autoload
 (defun mvtn-rename-current-file (name)
   "Changes the title depending on the major-mode and renames the
 file. In org-mode, it uses \"#+TITLE:\" to look for the title. In
