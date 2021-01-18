@@ -3,7 +3,7 @@
 ;; Author: f1p
 ;; Maintainer: f1p
 ;; Version: 0.1
-;; Package-Requires: ()
+;; Package-Requires: ((emacs "26"))
 ;; Homepage: https://github.com/f1rstperson/mvtn
 ;; Keywords: notes notetaking minimal links
 
