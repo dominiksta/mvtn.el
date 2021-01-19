@@ -3,25 +3,36 @@
 EMACS = emacs
 VERSION = 0.1
 EL = mvtn.el mvtn-pkg.el
-ELC = mvtn.elc mvtn-test.elc
+TEST = test/mvtn-test.el
+
+# ----------------------------------------------------------------------
+# compile
+# ----------------------------------------------------------------------
+.el.elc:
+	$(EMACS) -batch -Q -L . -L test -f batch-byte-compile $<
+
+default: compile
+compile: $(EL:.el=.elc) $(TEST:.el=.elc)
 
 # ----------------------------------------------------------------------
 # clean
 # ----------------------------------------------------------------------
 clean:
-	rm -rf *.elc *.tar mvtn-package/
+	rm -rf *.elc test/*.elc *.tar mvtn-package/
 
 
 # ----------------------------------------------------------------------
 # dependencies
 # ----------------------------------------------------------------------
-mvtn-test.elc: mvtn.el mvtn-test.el
+mvtn-test.elc: mvtn.el test/mvtn-test.el
+
 
 # ----------------------------------------------------------------------
 # unit tests
 # ----------------------------------------------------------------------
-test: $(ELC)
-	$(EMACS) -batch -Q -L . -l mvtn-test.elc -f ert-run-tests-batch
+test: compile
+	$(EMACS) -batch -Q -L . -L test -l test/mvtn-test.elc \
+		-f ert-run-tests-batch
 
 
 # ----------------------------------------------------------------------
