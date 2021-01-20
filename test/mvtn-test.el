@@ -85,9 +85,65 @@ files. Mocking seemed like too much of a hassle here.")
            "20210110-134522 test1 -- i have tags.md
 20210110-134523 test2 test2.txt
 20210110-134524 test3 test3.org
+20201212-134541 test1 (fake conflicted copy).txt
 20201212-134541 test1.txt
 20201212-134542 test2 test2 -- tags tags tags.txt
-20201212-134544 test3 test3.org")))
+20201212-134544 test3 test3.org"))
+  (should (string-equal
+           (mapconcat 'identity
+                      (mvtn-test-with-testfiles (mvtn-list-files t)) "\n")
+           "20210110-134522 test1 -- i have tags.md
+20210110-134523 test2 test2.txt
+20210110-134524 test3 test3.org
+20201212-134541 test1 (fake conflicted copy).txt
+20201212-134541 test1.txt
+20201212-134542 test2 test2 -- tags tags tags.txt
+20201212-134544 test3 test3.org
+20181212-134541 test1.txt
+20181212-134542 test2 test2 -- tags tags tags.txt
+20181212-134544 test3 test3.org
+19990110-134522 test1 -- tags test.txt
+19990110-134522 test2 test2.txt
+19990110-134523 test3 test3.org")))
+
+
+(ert-deftest mvtn-test-link-targets ()
+  "Test `mvtn-link-targets'"
+  (mvtn-test-with-testfiles
+   (should (mvtn-link-targets "^^20210110-134524 test3 test3.org^^"))
+   (should (mvtn-link-targets "^^20210110-134524 test3 test3^^"))
+   (should (mvtn-link-targets "^^20210110-134524^^"))
+   (should (not (mvtn-link-targets "^^20210110-134525^^")))
+   (should (mvtn-link-targets "^^19990110-134522^^"))
+   (should (eq 2 (length (mvtn-link-targets "^^20201212-134541 test1.txt^^"))))
+   (should-error (mvtn-link-targets "^^20210110-1345^^"))))
+
+
+;; TODO Unit tests for search.
+;; I am unsure how to test search. One would have to somehow wait for the result
+;; of the search command (grep, etc) and only then search the result buffer
+;; contents. I do not know if/how that could be achieved.
+
+
+(ert-deftest mvtn-test-rename-current-file ()
+  "Test `mvtn-rename-current-file'"
+  (mvtn-test-with-testfiles
+   (let ((orig-file (concat mvtn-test-note-dir
+                            "/1999/19990110-134522 test2 test2.txt"))
+         (should-new-file (concat mvtn-test-note-dir
+                                  "/1999/19990110-134522 My New Name.txt")))
+     (with-current-buffer (find-file-noselect orig-file)
+       (should (string-equal (buffer-substring-no-properties
+                              (point-min) (point-at-eol))
+                             "title: test2 test2"))
+       (buffer-substring-no-properties (point-min) (point-at-eol))
+       (mvtn-rename-current-file "My New Name")
+       (should (not (file-exists-p orig-file)))
+       (should (file-exists-p should-new-file))
+       (should (string-equal (buffer-substring-no-properties
+                              (point-min) (point-at-eol))
+                             "title: My New Name"))
+       (kill-buffer)))))
 
 
 

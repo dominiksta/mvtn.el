@@ -26,9 +26,20 @@ timestamp. Example:
      (mkdir "1999") (cd "1999")
      (mvtn-test-touch "19990110-134522 test1 -- tags test.txt")
      (mvtn-test-touch "19990110-134522 test2 test2.txt")
+     (write-region "title: test2 test2
+date: 1999-01-10
+mvtn_original_title :: test2 test2
+mvtn_original_id :: 19990110-134522
+----------------------------------------------------------------------\n\n"
+                   nil  "19990110-134522 test2 test2.txt")
      (mvtn-test-touch "19990110-134523 test3 test3.org")
+     (cd "..") (mkdir "2018") (cd "2018")
+     (mvtn-test-touch "20181212-134541 test1.txt")
+     (mvtn-test-touch "20181212-134542 test2 test2 -- tags tags tags.txt")
+     (mvtn-test-touch "20181212-134544 test3 test3.org")
      (cd "..") (mkdir "2020") (cd "2020")
      (mvtn-test-touch "20201212-134541 test1.txt")
+     (mvtn-test-touch "20201212-134541 test1 (fake conflicted copy).txt")
      (mvtn-test-touch "20201212-134542 test2 test2 -- tags tags tags.txt")
      (mvtn-test-touch "20201212-134544 test3 test3.org")
      (cd "..") (mkdir "2021") (cd "2021")
