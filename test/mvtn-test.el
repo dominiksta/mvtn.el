@@ -82,12 +82,12 @@ files. Mocking seemed like too much of a hassle here.")
   (should (string-equal
            (mapconcat 'identity
                       (mvtn-test-with-testfiles (mvtn-list-files)) "\n")
-           "test1 -- i have tags.md
-test2 test2.txt
-test3 test3.org
-test1.txt
-test2 test2 -- tags tags tags.txt
-test3 test3.org")))
+           "20210110-134522 test1 -- i have tags.md
+20210110-134523 test2 test2.txt
+20210110-134524 test3 test3.org
+20201212-134541 test1.txt
+20201212-134542 test2 test2 -- tags tags tags.txt
+20201212-134544 test3 test3.org")))
 
 
 
