@@ -190,12 +190,13 @@ recursively. Limit to `mvtn-search-years' unless ALL is non-nil."
     result))
 
 
-(defun mvtn-create-new-file (title tags)
-  "Creates a new mvtn note file in
-`mvtn-get-create-current-year-directory' with TITLE (string) as
-title and TAGS (strings) as tags. The naming scheme follows the
+(defun mvtn-create-new-file (title tags &optional encrypt)
+  "Creates a new mvtn note file in `mvtn-get-create-current-year-directory' with
+TITLE (string) as title and TAGS (strings) as tags. When ENCRYPT is non-nil,
+.gpg is appended to the filename. The naming scheme follows the
 following template:
-\"{(`mvtn-current-timestamp' 'second)} {title} -- {tags}.{`mvtn-default-file-extension'}\"
+
+\"{(`mvtn-current-timestamp' 'second)} {title} -- {tags}.{`mvtn-default-file-extension'}[.gpg]\"
 
 Returns an open buffer with the new file.
 
@@ -204,16 +205,22 @@ Example:
 -> #<buffer 20210110-000548 Branching in Subversion -- dev subversion.org>"
   (let* ((tags-stripped (car (split-string tags)))
          (timestamp (mvtn-current-timestamp 'second))
-         (file-name (format "%s/%s %s%s.%s"
+         (file-name (format "%s/%s %s%s.%s%s"
                             (mvtn-get-create-current-year-directory)
                             timestamp title
                             (if tags-stripped (concat " -- " tags) "")
-                            mvtn-default-file-extension))
+                            mvtn-default-file-extension
+                            (if encrypt ".gpg" "")))
          (template (mvtn-substitute-template
                     (mvtn-template-for-extension mvtn-default-file-extension)
                     title (format-time-string "%Y-%m-%d") timestamp))
          (buf (find-file-noselect file-name)))
-    (with-current-buffer buf (insert template) (save-buffer)) buf))
+    (with-current-buffer buf (insert template) (save-buffer))
+    ;; When creating an encrypting a file with 'epa.el', the user is prompted
+    ;; for the gpg key to use everytime the buffer is saved. Once the file is
+    ;; closed and reopened though, epa seems to remember the key to use.
+    (when encrypt (kill-buffer buf) (setq buf (find-file-noselect file-name)))
+    buf))
 
 
 (defun mvtn-link-targets (link)
@@ -262,7 +269,7 @@ directories specified as a list of strings in DIRS."
   ;; `grep-use-null-device' remains enabled, it causes problems when using
   ;; compatibility layers like cygwin.
   (let ((grep-use-null-device nil))
-    (grep (concat (executable-find "grep") " -nH --null -r "
+    (grep (concat (executable-find "grep") " -nH --null -r -I "
                   (mapconcat (lambda (dir) (format "--exclude-dir=\"%s\"" dir))
                              exclude-dirs " ")
                   " " (shell-quote-argument string)))))
@@ -363,13 +370,14 @@ or whatever `find-file' is configured to do for directories."
 
 
 ;;;###autoload
-(defun mvtn-new-note ()
+(defun mvtn-new-note (&optional encrypt)
   "Creates a new note using `mvtn-create-new-file'. Switches to
-the buffer of the new note."
-  (interactive)
+the buffer of the new note. If ENCRYPT is non-nil, 'epa.el' is
+used to encrypt the file with gpg."
+  (interactive "P")
   (let ((title (read-from-minibuffer "Title: "))
         (tags (read-from-minibuffer "Tags: ")))
-    (switch-to-buffer (mvtn-create-new-file title tags))))
+    (switch-to-buffer (mvtn-create-new-file title tags encrypt))))
 
 
 ;;;###autoload
