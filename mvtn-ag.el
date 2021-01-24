@@ -12,6 +12,7 @@
 
 (declare-function ag "ext:ag")
 (defvar ag-executable)
+(defvar ag-arguments)
 
 ;;;###autoload
 (defun mvtn-search-full-text--ag (string exclude-dirs)
