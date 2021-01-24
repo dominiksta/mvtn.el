@@ -21,11 +21,10 @@ directories specified as a list of strings in DIRS. Fall back to
 `mvtn-search-full-text--grep' when `ag-executable' is not found."
   (if (not (executable-find ag-executable))
       (mvtn-search-full-text--grep string exclude-dirs)
-    (let ((ag-arguments (append '()
+    (let ((ag-arguments (append ag-arguments
                                 (mapcar
                                  (lambda (dir) (format "--ignore=%s" dir))
                                  exclude-dirs))))
-      (print ag-arguments)
       (ag string default-directory))))
 
 
