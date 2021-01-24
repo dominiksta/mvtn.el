@@ -1,4 +1,4 @@
-;;; mvtn-test.el --- summary -*- lexical-binding: t -*-
+;;; mvtn-test.el --- Unit tests for mvtn -*- lexical-binding: t -*-
 
 (require 'mvtn)
 (require 'mvtn-test-helpers)

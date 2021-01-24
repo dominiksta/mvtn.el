@@ -1,4 +1,4 @@
-;;; mvtn-test-helpers.el --- summary -*- lexical-binding: t -*-
+;;; mvtn-test-helpers.el --- Helpers for mvtn unit test -*- lexical-binding: t -*-
 
 (defun mvtn-test-file-exists-disregarding-timestamp-p (filename dir)
   "Check wether FILENAME exists in DIR, disregarding mvtn
