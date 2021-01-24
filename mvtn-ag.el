@@ -15,12 +15,13 @@
 (defvar ag-arguments)
 
 ;;;###autoload
-(defun mvtn-search-full-text--ag (string exclude-dirs)
+(defun mvtn-search-full-text-ag (string exclude-dirs)
   "Searches STRING using `ag' in `default-directory', excluding
 directories specified as a list of strings in DIRS. Fall back to
 `mvtn-search-full-text--grep' when `ag-executable' is not found."
+  (require 'ag)
   (if (not (executable-find ag-executable))
-      (mvtn-search-full-text--grep string exclude-dirs)
+      (mvtn-search-full-text-grep string exclude-dirs)
     (let ((ag-arguments (append ag-arguments
                                 (mapcar
                                  (lambda (dir) (format "--ignore=%s" dir))

@@ -81,12 +81,12 @@ years (including the current year). This is done for long-term
 scalability."
   :type 'number :group 'mvtn)
 
-(defcustom mvtn-search-function 'mvtn-search-full-text--grep
+(defcustom mvtn-search-function 'mvtn-search-full-text-grep
   "The function used in mvtn search commands
 `mvtn-search-full-text'. Its first argument should be the string
 to search for and the second argument a list of directories (as
 strings) to exclude from the search. By default,
-`mvtn-search-full-text--grep' is used."
+`mvtn-search-full-text-grep' is used."
   :type 'symbol :group 'mvtn)
 
 (defcustom mvtn-list-files-command
@@ -259,7 +259,7 @@ prompts for disambiguation."
     (find-file target)))
 
 
-(defun mvtn-search-full-text--grep (string exclude-dirs)
+(defun mvtn-search-full-text-grep (string exclude-dirs)
   "Searches STRING using `grep' in `default-directory', excluding
 directories specified as a list of strings in DIRS."
   ;; `grep-use-null-device' is only useful when -H is not an option and only one
