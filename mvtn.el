@@ -319,7 +319,6 @@ first occurence of \"title: \"."
          (old-timestamp (substring old-orig 0 15))
          (old-ext (file-name-extension old-orig))
          (old-name+tags (substring old-orig 16 (- -1 (length old-ext))))
-         (old-name (car (split-string old-name+tags " -- ")))
          (old-tags (cadr (split-string old-name+tags " -- ")))
          (new (format "%s %s%s.%s" old-timestamp name
                       (if old-tags (concat " -- " old-tags) "") old-ext)))
