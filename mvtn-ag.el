@@ -10,15 +10,16 @@
 
 (require 'mvtn)
 
-(declare-function ag "ext:ag")
+(declare-function ag-regexp "ext:ag")
 (defvar ag-executable)
 (defvar ag-arguments)
 
 ;;;###autoload
 (defun mvtn-search-full-text-ag (string exclude-dirs)
-  "Searches STRING using `ag' in `default-directory', excluding
-directories specified as a list of strings in DIRS. Fall back to
-`mvtn-search-full-text--grep' when `ag-executable' is not found."
+  "Searches STRING using `ag-regexp' in `default-directory',
+excluding directories specified as a list of strings in
+DIRS. Fall back to `mvtn-search-full-text--grep' when
+`ag-executable' is not found."
   (require 'ag)
   (if (not (executable-find ag-executable))
       (mvtn-search-full-text-grep string exclude-dirs)
@@ -26,7 +27,7 @@ directories specified as a list of strings in DIRS. Fall back to
                                 (mapcar
                                  (lambda (dir) (format "--ignore=%s" dir))
                                  exclude-dirs))))
-      (ag string default-directory))))
+      (ag-regexp string default-directory))))
 
 
 (provide 'mvtn-ag)
