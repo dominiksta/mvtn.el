@@ -12,6 +12,7 @@
 
 (declare-function rg "ext:rg")
 (defvar rg-executable)
+(defvar rg-command-line-flags)
 
 ;;;###autoload
 (defun mvtn-search-full-text-rg (string exclude-dirs)
