@@ -76,35 +76,73 @@ files. Mocking seemed like too much of a hassle here.")
                   "My Note Title -- tag1 tag2.org"
                   (mvtn-get-create-current-year-directory))))))
 
+(ert-deftest mvtn--extract-note-identity ()
+  "Test `mvtn--extract-note-identity'"
+  (should-error (mvtn--extract-note-identity "static/asdslkasjdlkj.org"))
+  (should-error (mvtn--extract-note-identity "static/2020-01010.org"))
+  (should (string-equal (mvtn--extract-note-identity
+                         "2020/20200101-010101 test -- tag1 tag2.org")
+                        "20200101-010101"))
+  (should (string-equal (mvtn--extract-note-identity
+                         "2020/20200101-010101 test.org")
+                        "20200101-010101"))
+  (should (string-equal (mvtn--extract-note-identity
+                         "2020/20200101-010101 test name -- tag1 tag2.org" t)
+                        "20200101-010101 test name"))
+  (should (string-equal (mvtn--extract-note-identity
+                         "2020/20200101-010101 test name.txt" t)
+                        "20200101-010101 test name"))
+
+  (should (string-equal (mvtn--extract-note-identity
+                         "^^2020/20200101-010101 test name.txt^^" t)
+                        "20200101-010101 test name"))
+  (should (string-equal (mvtn--extract-note-identity
+                         "^^2020/20200101-010101 test name -- tag1 tag2.txt^^" t)
+                        "20200101-010101 test name"))
+  (should (string-equal (mvtn--extract-note-identity
+                         "^^20200101-010101 test name    -- tag1    ^^    " t)
+                        "20200101-010101 test name"))
+  (should (string-equal (mvtn--extract-note-identity
+                         "^^20200101-010101 test name^^  " t)
+                        "20200101-010101 test name")))
+
 
 (ert-deftest mvtn-list-files ()
   "Test `mvtn-list-files'"
   (should (string-equal
            (mapconcat 'identity
                       (mvtn-test-with-testfiles (mvtn-list-files)) "\n")
-           "20210110-134522 test1 -- i have tags.md
-20210110-134523 test2 test2.txt
-20210110-134524 test3 test3.org
-20201212-134541 test1 (fake conflicted copy).txt
-20201212-134541 test1.txt
-20201212-134542 test2 test2 -- tags tags tags.txt
-20201212-134544 test3 test3.org"))
+           "2021/20210110-134524 test3 test3.org
+2021/20210110-134523 test2 test2.txt
+2021/20210110-134522 test1 -- i have tags.md
+2020/20201212-134544 test3 test3.org
+2020/20201212-134542 test2 test2 -- tags tags tags.txt
+2020/20201212-134541 test1.txt
+2020/20201212-134541 test1 (fake conflicted copy).txt
+static/20130210-134522 an old statically displayed note.org
+static/20130210-134522 an old statically displayed note.md
+static/work/20140210-134522 a note for work 2.org
+static/work/20140210-134522 a note for work 1.md"))
   (should (string-equal
            (mapconcat 'identity
                       (mvtn-test-with-testfiles (mvtn-list-files t)) "\n")
-           "20210110-134522 test1 -- i have tags.md
-20210110-134523 test2 test2.txt
-20210110-134524 test3 test3.org
-20201212-134541 test1 (fake conflicted copy).txt
-20201212-134541 test1.txt
-20201212-134542 test2 test2 -- tags tags tags.txt
-20201212-134544 test3 test3.org
-20181212-134541 test1.txt
-20181212-134542 test2 test2 -- tags tags tags.txt
-20181212-134544 test3 test3.org
-19990110-134522 test1 -- tags test.txt
-19990110-134522 test2 test2.txt
-19990110-134523 test3 test3.org")))
+           "2021/20210110-134524 test3 test3.org
+2021/20210110-134523 test2 test2.txt
+2021/20210110-134522 test1 -- i have tags.md
+2020/20201212-134544 test3 test3.org
+2020/20201212-134542 test2 test2 -- tags tags tags.txt
+2020/20201212-134541 test1.txt
+2020/20201212-134541 test1 (fake conflicted copy).txt
+2018/20181212-134544 test3 test3.org
+2018/20181212-134542 test2 test2 -- tags tags tags.txt
+2018/20181212-134541 test1.txt
+1999/19990110-134523 test3 test3.org
+1999/19990110-134522 test2 test2.txt
+1999/19990110-134522 test1 -- tags test.txt
+static/20130210-134522 an old statically displayed note.org
+static/20130210-134522 an old statically displayed note.md
+static/work/20140210-134522 a note for work 2.org
+static/work/20140210-134522 a note for work 1.md")))
 
 
 (ert-deftest mvtn-test-link-targets ()
@@ -116,7 +154,11 @@ files. Mocking seemed like too much of a hassle here.")
    (should (not (mvtn-link-targets "^^20210110-134525^^")))
    (should (mvtn-link-targets "^^19990110-134522^^"))
    (should (eq 2 (length (mvtn-link-targets "^^20201212-134541 test1.txt^^"))))
-   (should-error (mvtn-link-targets "^^20210110-1345^^"))))
+   (should (mvtn-link-targets "^^20130210-134522 an old statically displayed note^^"))
+   (should (eq 2 (length (mvtn-link-targets "^^20140210-134522 a note for work^^"))))
+   (should-error (mvtn-link-targets "^^20210110-1345^^"))
+   (should (not (mvtn-link-targets
+                 "^^20130210-123456 a note in an excluded folder^^")))))
 
 
 ;; TODO Unit tests for search.

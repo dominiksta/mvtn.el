@@ -1,6 +1,6 @@
 ;;; mvtn.el --- Minimum Viable Text Notes -*- lexical-binding: t -*-
 
-;; Author: f1p
+;; Author: f1p, phga
 ;; Maintainer: f1p
 ;; Version: 0.1
 ;; Package-Requires: ((emacs "26"))
@@ -35,10 +35,28 @@
 (require 'seq)
 (require 'grep)
 
-
 (defcustom mvtn-note-directory (expand-file-name "~/mvtn")
   "The base directory for all your mvtn notes."
   :type 'string :group 'mvtn)
+
+(defcustom mvtn-static-note-directories
+  '("static")
+  "A list containing all the directory names inside the
+`mvtn-note-directory' that contain notes which are year
+independent. These notes are always displayed when calling
+`mvtn-open-note', `mvtn-insert-link' and everything else affected
+by `mvtn-list-files-function' - independently from the value of
+`mvtn-search-years'."
+  :type '(list :value-type string) :group 'mvtn)
+
+(defcustom mvtn-excluded-directories
+  '(".git" ".svn" "ltximg")
+  "A list containing all directory names that should be ignored
+when calling `mvtn-open-note', `mvtn-insert-link' and everything
+else affected by `mvtn-list-files-function'. These directories
+might contain linked pictures, LaTeX fragments or anything that
+is not a note (NaN)."
+  :type '(list :value-type string) :group 'mvtn)
 
 (defcustom mvtn-default-file-extension "org"
   "The default extension of new mvtn notes. Any extension is
@@ -75,6 +93,12 @@ are required for some functions such as
 `mvtn-rename-current-file'."
   :type '(alist :value-type (group string)) :group 'mvtn)
 
+(defcustom mvtn-list-files-order 'desc
+  "Either 'asc or 'desc. Affects `mvtn-open-note',
+`mvtn-insert-link' and everything else calling
+`mvtn-list-files-function'."
+  :type 'symbol :group 'mvtn)
+
 (defcustom mvtn-search-years 3
   "Search in mvtn is by default limited to the previous n
 years (including the current year). This is done for long-term
@@ -89,26 +113,27 @@ strings) to exclude from the search. By default,
 `mvtn-search-full-text-grep' is used."
   :type 'symbol :group 'mvtn)
 
-(defcustom mvtn-list-files-command
+(defcustom mvtn-list-files-function
   (if (and (not (eq system-type 'windows-nt))
-         (executable-find find-program))
-      (format "%s * -type f -print" (executable-find find-program))
-    nil)
-  "When this is nil, use emacs internal functions to list
-filenames. If this is set to a string, mvtn will instead call the
-defined program and expect an output of one filename per
-line. This can significantly speed up completion for inserting
-links or opening files. The actual filtering will always be
-performed in elisp, since it is in my experience fast enough to
-search through more than 100k files.
+           (executable-find find-program))
+      'mvtn-list-files-function-find
+    'mvtn-list-files-function-native)
+  "Function to traverse all directories (year dependent &
+`mvtn-static-note-directories') in `mvtn-note-directory'
+excluding directories provided in `mvtn-excluded-directories'.
 
-Defaults to nil on windows."
-  :type 'string :group 'mvtn)
+Takes one optional argument SEARCH which allows to only list
+files matching this specific string
 
+RETURN a list of all files (notes).
+
+See `mvtn-list-files-function-native' and `mvtn-list-files-function-find'."
+  :type 'symbol :group 'mvtn)
 
 (defvar mvtn--link-regexp "\\^\\^[[:digit:]]\\{8\\}-[[:digit:]]\\{6\\}.*\\^\\^"
   "A regexp matching valid mvtn links.")
-
+(defvar mvtn--notename-regexp "^[[:digit:]]\\{8\\}-[[:digit:]]\\{6\\}.*"
+  "A regexp matching valid mvtn note names.")
 
 (defun mvtn-current-timestamp (accuracy)
   "Returns a timestamp for use in generating mvtn filenames. ACCURACY is a
@@ -146,7 +171,7 @@ one of 'year, 'month, 'day, 'hour, 'minute or 'second."
   "Return the template in `mvtn-file-extension-templates' for EXTENSION."
   (declare (side-effect-free t))
   (or (cadr (assoc extension mvtn-file-extension-templates))
-     (cadr (assoc "" mvtn-file-extension-templates))))
+      (cadr (assoc "" mvtn-file-extension-templates))))
 
 
 (defun mvtn-substitute-template (template-string title date timestamp)
@@ -171,23 +196,56 @@ one of 'year, 'month, 'day, 'hour, 'minute or 'second."
     dir-name))
 
 
+(defun mvtn-list-files-function-native (&optional search)
+  "Native (elisp) implementation for `mvtn-list-files-function'.
+Does not show hidden files (prefixed with '.')"
+  (mapcar (lambda (file-name)
+            (substring file-name 2))
+          (directory-files-recursively
+           "." (if search
+                   (format "^[^\\.]*%s" search)
+                 "^[^\\.]") nil
+           (lambda (dir-name)
+             (not (member (file-name-nondirectory dir-name)
+                          mvtn-excluded-directories))))))
+
+
+(defun mvtn-list-files-function-find (&optional search)
+  "GNU/POSIX find implementation for `mvtn-list-files-function'."
+  (split-string
+   (shell-command-to-string
+    (format "%s * -type f %s -print %s"
+            (executable-find find-program)
+            (if search
+                (format "-name '*%s*'" search) "")
+            (if mvtn-excluded-directories
+                (format "-o -path '*%s/*' -prune"
+                        (mapconcat 'identity mvtn-excluded-directories
+                                   "/*' -prune -o -path '*")) "")))
+   "\n" t))
+
+
+(defun mvtn--directory-files (&optional search)
+  "Checks if `default-directory' exists and calls `mvtn-list-files-function'."
+  (if (file-exists-p default-directory)
+      (funcall mvtn-list-files-function search)
+    nil))
+
+
 (defun mvtn-list-files (&optional all)
   "Return a list of all files in `mvtn-note-directory'
 recursively. Limit to `mvtn-search-years' unless ALL is non-nil."
-  (let ((result '()))
-    (dotimes (n (if all 50 mvtn-search-years))
-      (let* ((working-year (- (string-to-number (format-time-string "%Y")) n))
-             (default-directory (format "%s/%s" mvtn-note-directory working-year))
-             (filelist (if (file-exists-p default-directory)
-                           (if mvtn-list-files-command
-                               (split-string (shell-command-to-string
-                                              mvtn-list-files-command)
-                                             "\n" t)
-                             (mapcar (lambda (el) (substring el 2))
-                                     (directory-files-recursively "." "")))
-                         nil)))
-        (setq result (append result filelist))))
-    result))
+  (let* ((filelist '())
+         (current-year (string-to-number (format-time-string "%Y")))
+         (yearlist (if all
+                       (directory-files mvtn-note-directory nil "^[[:digit:]]\\{4\\}$")
+                     (number-sequence (1+ (- current-year mvtn-search-years)) current-year))))
+    (dolist (current-dir (append mvtn-static-note-directories yearlist))
+      (let ((default-directory (format "%s/%s" mvtn-note-directory current-dir)))
+        (setq filelist (append filelist (mapcar (lambda (filename)
+                                                  (format "%s/%s" current-dir filename))
+                                                (mvtn--directory-files))))))
+    (if (eq mvtn-list-files-order 'asc) filelist (reverse filelist))))
 
 
 (defun mvtn-create-new-file (title tags &optional encrypt)
@@ -200,7 +258,7 @@ following template:
 
 Returns an open buffer with the new file.
 
-Example: 
+Example:
 (mvtn-create-new-file \"Branching in Subversion\" '(\"dev\" \"subversion\"))
 -> #<buffer 20210110-000548 Branching in Subversion -- dev subversion.org>"
   (let* ((tags-stripped (car (split-string tags)))
@@ -223,6 +281,22 @@ Example:
     buf))
 
 
+(defun mvtn--extract-note-identity (noteid &optional notename)
+  "Extracts the timestamp from NOTEID (any string representation
+of a note's name). When NOTENAME is given, also extracts the
+filename without filextension and tags"
+  (when (not
+         (if notename
+             (string-match "[[:digit:]]\\{8\\}-[[:digit:]]\\{6\\} .+" noteid)
+           (string-match "[[:digit:]]\\{8\\}-[[:digit:]]\\{6\\}" noteid)))
+    (error (concat "Failed to extract note identity. "
+                   "Probably an invalid filename or timestamp: %s")
+           noteid))
+  (let* ((match (match-string-no-properties 0 noteid))
+         (sep (if (string-match-p "--" match) "--" "\\.")))
+    (string-trim (car (split-string match sep)) nil "[\\^ ]+")))
+
+
 (defun mvtn-link-targets (link)
   "Determine the target file of the given LINK. The only relevant
 part of a link for determining this target is the id aka
@@ -237,14 +311,18 @@ or syncthing.
 
 Example:
 (mvtn-link-targets \"^^20210110-000548 ABCDEFGBLABLA.asd^^\")
--> \"/path/to/notes/2020/20210110-000548 Branching in Subversion.org\""
+-> \"/path/to/notes/2021/20210110-000548 Branching in Subversion.org\""
   (when (not (string-match-p mvtn--link-regexp link)) (error "Invalid mvtn link"))
-  (let* ((timestamp (substring link 2 17))
-         (year-dir (format "%s/%s/" mvtn-note-directory
-                           (mvtn-timestamp-field timestamp 'year))))
-    (mapcar (lambda (el) (concat year-dir el))
-            (seq-filter (lambda (filename) (string-prefix-p timestamp filename))
-                        (directory-files year-dir)))))
+  (let* ((timestamp (mvtn--extract-note-identity link))
+         (year-dir (mvtn-timestamp-field timestamp 'year))
+         (matches '()))
+    (dolist (current-dir (flatten-list (cons year-dir mvtn-static-note-directories)))
+      (let ((default-directory (format "%s/%s" mvtn-note-directory current-dir)))
+        (setq matches (append matches
+                              (mapcar (lambda (filename)
+                                        (format "%s/%s" current-dir filename))
+                                      (mvtn--directory-files timestamp))))))
+    matches))
 
 
 (defun mvtn-follow-link (link)
@@ -256,7 +334,7 @@ prompts for disambiguation."
                        ((= (length matches) 1)
                         (car matches))
                        (t (error "No matches found for link")))))
-    (find-file target)))
+    (find-file (format "%s/%s" mvtn-note-directory target))))
 
 
 (defun mvtn-search-full-text-grep (string exclude-dirs)
@@ -301,10 +379,10 @@ buffer). If ALL is non-nil (can be set through a universal
 argument), then `mvtn-search-years' is ignored."
   (interactive "P")
   (when (not file) (setq file (file-name-nondirectory buffer-file-name)))
-  (when (not (string-match-p "^[[:digit:]]\\{8\\}-[[:digit:]]\\{6\\}" file))
+  (when (not (string-match-p mvtn--notename-regexp file))
     (error "Invalid mvtn filename. Cancelled backlink search."))
-  (let ((date-id (substring file 0 15)))
-    (mvtn-search-full-text (concat "\\^\\^" date-id) all)))
+  (let ((timestamp (mvtn--extract-note-identity file)))
+    (mvtn-search-full-text (concat "\\^\\^" timestamp) all)))
 
 
 ;;;###autoload
@@ -323,7 +401,6 @@ first occurence of \"title: \"."
          (new (format "%s %s%s.%s" old-timestamp name
                       (if old-tags (concat " -- " old-tags) "") old-ext)))
     (rename-file old-orig new)
-    (print (format "(rename-file %s %s)" old-orig new))
     (rename-buffer new)
     (set-visited-file-name new))
   (save-excursion
@@ -356,8 +433,11 @@ first occurence of \"title: \"."
 (defun mvtn-insert-link ()
   "Prompt for a note to insert a link to. Supports completion."
   (interactive)
-  (let ((answer (completing-read "Insert link to: " (mvtn-list-files))))
-    (insert (concat "^^" answer "^^"))))
+  (let* ((answer (completing-read "Insert link to: " (mvtn-list-files)))
+         (link (mvtn--extract-note-identity answer t)))
+    (when (not (string-match-p mvtn--notename-regexp link))
+      (error "Invalid mvtn filename: %s" answer))
+    (insert (format "^^%s^^" link))))
 
 
 ;;;###autoload
@@ -380,13 +460,12 @@ used to encrypt the file with gpg."
 
 
 ;;;###autoload
-(defun mvtn-open-note ()
+(defun mvtn-open-note (&optional all)
   "Opens a note from `mvtn-note-directory'. Supports completion."
-  (interactive)
+  (interactive "P")
   (let* ((default-directory mvtn-note-directory)
-         (answer (completing-read "Open note: " (mvtn-list-files))))
-    (find-file (format "%s/%s" (mvtn-timestamp-field answer 'year) answer))))
-
+         (answer (completing-read "Open note: " (mvtn-list-files all))))
+    (find-file answer)))
 
 (provide 'mvtn)
 
