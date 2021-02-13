@@ -138,7 +138,8 @@ seperator. If this seperator (regexp) matches a link, then
 everything following the seperator will be passed to its
 associated function *after* following the link. (Mvtn goes
 through this list top to bottom and only executes the first
-applicable action.)")
+applicable action.)"
+  :type '(alist :value-type (group symbol)) :group 'mvtn)
 
 (defvar mvtn--link-regexp "\\^\\^[[:digit:]]\\{8\\}-[[:digit:]]\\{6\\}.*\\^\\^"
   "A regexp matching valid mvtn links.")
