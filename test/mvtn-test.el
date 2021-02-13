@@ -3,6 +3,7 @@
 (require 'mvtn)
 (require 'mvtn-test-helpers)
 (require 'ert)
+(require 'thingatpt)
 
 
 ;; NOTE: This is a personal project, not "enterprise" code. I did not invest
