@@ -350,9 +350,8 @@ prompts for disambiguation."
     (find-file (format "%s/%s" mvtn-note-directory target))
     (dolist (el mvtn-link-actions)
       (when (string-match-p (car el) link)
-        (funcall (cadr el) (substring
-                            (nth 1 (split-string link (car el)))
-                            0 -2))))))
+        (funcall (cadr el)
+                 (substring (nth 1 (split-string link (car el))) 0 -2))))))
 
 
 (defun mvtn-link-action-search (search)
