@@ -161,6 +161,19 @@ static/work/20140210-134522 a note for work 1.md")))
                  "^^20130210-123456 a note in an excluded folder^^")))))
 
 
+(ert-deftest mvtn-test-link-action-search ()
+  "Test `mvtn-link-actions' and `mvtn-link-action-search'"
+  (mvtn-test-with-testfiles
+   (mvtn-follow-link "^^20181212-134541^^")
+   (mvtn-follow-link "^^20181212-134541 :: content^^")
+   (should (string-equal (word-at-point) "content"))
+   (mvtn-follow-link "^^20181212-134541 title :: content^^")
+   (should (string-equal (word-at-point) "content"))
+   (mvtn-follow-link "^^20181212-134541 :: some^^")
+   (should (string-equal (word-at-point) "some"))
+   (kill-buffer "20181212-134541 test1.txt")))
+
+
 ;; TODO Unit tests for search.
 ;; I am unsure how to test search. One would have to somehow wait for the result
 ;; of the search command (grep, etc) and only then search the result buffer
