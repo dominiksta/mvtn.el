@@ -35,6 +35,15 @@ mvtn_original_id :: 19990110-134522
      (mvtn-test-touch "19990110-134523 test3 test3.org")
      (cd "..") (mkdir "2018") (cd "2018")
      (mvtn-test-touch "20181212-134541 test1.txt")
+     (write-region "title: test1
+date: 2018-12-12
+mvtn_original_title :: test1 test1
+mvtn_original_id :: 20181212-134541
+----------------------------------------------------------------------
+
+This is some content.
+And some more content."
+                   nil  "20181212-134541 test1.txt")
      (mvtn-test-touch "20181212-134542 test2 test2 -- tags tags tags.txt")
      (mvtn-test-touch "20181212-134544 test3 test3.org")
      (cd "..") (mkdir "2020") (cd "2020")

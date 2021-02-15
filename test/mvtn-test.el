@@ -3,6 +3,7 @@
 (require 'mvtn)
 (require 'mvtn-test-helpers)
 (require 'ert)
+(require 'thingatpt)
 
 
 ;; NOTE: This is a personal project, not "enterprise" code. I did not invest
@@ -159,6 +160,19 @@ static/work/20140210-134522 a note for work 1.md")))
    (should-error (mvtn-link-targets "^^20210110-1345^^"))
    (should (not (mvtn-link-targets
                  "^^20130210-123456 a note in an excluded folder^^")))))
+
+
+(ert-deftest mvtn-test-link-action-search ()
+  "Test `mvtn-link-actions' and `mvtn-link-action-search'"
+  (mvtn-test-with-testfiles
+   (mvtn-follow-link "^^20181212-134541^^")
+   (mvtn-follow-link "^^20181212-134541 :: content^^")
+   (should (string-equal (word-at-point) "content"))
+   (mvtn-follow-link "^^20181212-134541 title :: content^^")
+   (should (string-equal (word-at-point) "content"))
+   (mvtn-follow-link "^^20181212-134541 :: some^^")
+   (should (string-equal (word-at-point) "some"))
+   (kill-buffer "20181212-134541 test1.txt")))
 
 
 ;; TODO Unit tests for search.

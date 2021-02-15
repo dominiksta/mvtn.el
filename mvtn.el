@@ -130,6 +130,17 @@ RETURN a list of all files (notes).
 See `mvtn-list-files-function-native' and `mvtn-list-files-function-find'."
   :type 'symbol :group 'mvtn)
 
+(defcustom mvtn-link-actions '((" :: " mvtn-link-action-search))
+  "Links may specify additional \"actions\" to be executed after
+following the link. These actions are defined in this alist. The
+car of each element of this list is interpreted as a
+seperator. If this seperator (regexp) matches a link, then
+everything following the seperator will be passed to its
+associated function *after* following the link. (Mvtn goes
+through this list top to bottom and only executes the first
+applicable action.)"
+  :type '(alist :value-type (group symbol)) :group 'mvtn)
+
 (defvar mvtn--link-regexp "\\^\\^[[:digit:]]\\{8\\}-[[:digit:]]\\{6\\}.*\\^\\^"
   "A regexp matching valid mvtn links.")
 (defvar mvtn--notename-regexp "^[[:digit:]]\\{8\\}-[[:digit:]]\\{6\\}.*"
@@ -328,13 +339,30 @@ Example:
 (defun mvtn-follow-link (link)
   "Follows the mvtn link LINK. If multiple matches exists,
 prompts for disambiguation."
+  (when (not (string-match-p (format "^%s$" mvtn--link-regexp) link))
+    (error "Not a valid mvtn link: %s" link))
   (let* ((matches (mvtn-link-targets link))
          (target (cond ((> (length matches) 1)
                         (completing-read "Pick match: " matches))
                        ((= (length matches) 1)
                         (car matches))
                        (t (error "No matches found for link")))))
-    (find-file (format "%s/%s" mvtn-note-directory target))))
+    (find-file (format "%s/%s" mvtn-note-directory target))
+    (dolist (el mvtn-link-actions)
+      (when (string-match-p (car el) link)
+        (funcall (cadr el)
+                 (substring (nth 1 (split-string link (car el))) 0 -2))))))
+
+
+(defun mvtn-link-action-search (search)
+  "Go to the beginning of the first occurence of SEARCH in
+current buffer and highlight the match with `pulse', if
+available. See `mvtn-link-actions'."
+  (goto-char (point-min)) (search-forward search)
+  (goto-char (match-beginning 0))
+  (require 'pulse nil nil)
+  (when (fboundp 'pulse-momentary-highlight-region)
+    (pulse-momentary-highlight-region (match-beginning 0) (match-end 0))))
 
 
 (defun mvtn-search-full-text-grep (string exclude-dirs)
