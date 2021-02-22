@@ -258,26 +258,24 @@ recursively. Limit to `mvtn-search-years' unless ALL is non-nil."
                                                 (mvtn--directory-files))))))
     (if (eq mvtn-list-files-order 'asc) filelist (reverse filelist))))
 
+(defun mvtn-generate-file-name (timestamp title extension tags &optional encrypt)
+  "Get an mvtn file-name following this template:
+\"{TIMESTAMP} {TITLE} -- {TAGS}.{EXTENSION}[.gpg]\""
+  (substring-no-properties
+   (format "%s/%s %s%s.%s%s" (mvtn-get-create-current-year-directory)
+           timestamp title (if (car (split-string tags)) (concat " -- " tags) "")
+           extension (if encrypt ".gpg" ""))))
+
 (defun mvtn-touch-new-file (timestamp title extension tags &optional encrypt)
-  "Creates a new mvtn note file in `mvtn-get-create-current-year-directory' with
-TITLE (string) as title and TAGS (strings) as tags. When ENCRYPT is non-nil,
-.gpg is appended to the filename. The naming scheme follows the
-following template:
-
-\"{TIMESTAMP} {TITLE} -- {TAGS}.{EXTENSION}[.gpg]\"
-
-Returns the full name of the newly created file."
-  (let* ((tags-stripped (car (split-string tags)))
-         (file-name (substring-no-properties
-                     (format "%s/%s %s%s.%s%s" (mvtn-get-create-current-year-directory)
-                             timestamp title (if tags-stripped (concat " -- " tags) "")
-                             extension (if encrypt ".gpg" "")))))
-    (write-region "" nil file-name) file-name))
+  "Use `mvtn-generate-file-name' to create a new file.
+RETURN the full name of the newly created file."
+  (let ((file-name (mvtn-generate-file-name timestamp title extension tags encrypt)))
+   (write-region "" nil file-name) file-name))
 
 (defun mvtn-create-new-file (title tags &optional encrypt no-template)
   "Use `mvtn-touch-new-file' to create a new file, insert a
 template according to `mvtn-file-extension-templates' and open
-the buffer to the resulting file."
+the buffer to the resulting file. RETURN that buffer."
   (let* ((timestamp (mvtn-current-timestamp 'second))
          (file-name (mvtn-touch-new-file
                      timestamp title mvtn-default-file-extension tags encrypt))
