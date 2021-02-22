@@ -20,7 +20,7 @@ timestamp. Example:
 
 
 (defmacro mvtn-test-with-testfiles (&rest body)
-  `(progn
+  `(let ((mvtn-note-directory mvtn-test-note-dir))
      (delete-directory mvtn-test-note-dir t)
      (mkdir mvtn-test-note-dir) (cd mvtn-test-note-dir)
      (mkdir "1999") (cd "1999")
@@ -52,8 +52,8 @@ And some more content."
      (mvtn-test-touch "20201212-134542 test2 test2 -- tags tags tags.txt")
      (mvtn-test-touch "20201212-134544 test3 test3.org")
      (cd "..") (mkdir "2021") (cd "2021")
-     (mvtn-test-touch "20210110-134522 test1 -- i have tags.md")
-     (mvtn-test-touch "20210110-134523 test2 test2.txt")
+     (mvtn-touch-new-file "20210110-134522" "test1" "md" "i have tags")
+     (mvtn-touch-new-file "20210110-134523" "test2 test2" "txt" "")
      (mvtn-test-touch "20210110-134524 test3 test3.org")
      (cd "..") (mkdir "static") (cd "static")
      (mvtn-test-touch "20130210-134522 an old statically displayed note.md")
@@ -66,8 +66,7 @@ And some more content."
      (mvtn-test-touch "20140210-134522 a note for work 1.md")
      (mvtn-test-touch "20140210-134522 a note for work 2.org")
      (cd "../../..")
-     (let* ((mvtn-note-directory mvtn-test-note-dir)
-            (result (progn ,@body)))
+     (let ((result (progn ,@body)))
        (delete-directory mvtn-test-note-dir t)
        result)))
 

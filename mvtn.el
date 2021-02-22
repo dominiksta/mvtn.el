@@ -258,33 +258,34 @@ recursively. Limit to `mvtn-search-years' unless ALL is non-nil."
                                                 (mvtn--directory-files))))))
     (if (eq mvtn-list-files-order 'asc) filelist (reverse filelist))))
 
-
-(defun mvtn-create-new-file (title tags &optional encrypt)
+(defun mvtn-touch-new-file (timestamp title extension tags &optional encrypt)
   "Creates a new mvtn note file in `mvtn-get-create-current-year-directory' with
 TITLE (string) as title and TAGS (strings) as tags. When ENCRYPT is non-nil,
 .gpg is appended to the filename. The naming scheme follows the
 following template:
 
-\"{(`mvtn-current-timestamp' 'second)} {title} -- {tags}.{`mvtn-default-file-extension'}[.gpg]\"
+\"{TIMESTAMP} {TITLE} -- {TAGS}.{EXTENSION}[.gpg]\"
 
-Returns an open buffer with the new file.
-
-Example:
-(mvtn-create-new-file \"Branching in Subversion\" '(\"dev\" \"subversion\"))
--> #<buffer 20210110-000548 Branching in Subversion -- dev subversion.org>"
+Returns the full name of the newly created file."
   (let* ((tags-stripped (car (split-string tags)))
-         (timestamp (mvtn-current-timestamp 'second))
-         (file-name (format "%s/%s %s%s.%s%s"
-                            (mvtn-get-create-current-year-directory)
-                            timestamp title
-                            (if tags-stripped (concat " -- " tags) "")
-                            mvtn-default-file-extension
-                            (if encrypt ".gpg" "")))
+         (file-name (substring-no-properties
+                     (format "%s/%s %s%s.%s%s" (mvtn-get-create-current-year-directory)
+                             timestamp title (if tags-stripped (concat " -- " tags) "")
+                             extension (if encrypt ".gpg" "")))))
+    (write-region "" nil file-name) file-name))
+
+(defun mvtn-create-new-file (title tags &optional encrypt no-template)
+  "Use `mvtn-touch-new-file' to create a new file, insert a
+template according to `mvtn-file-extension-templates' and open
+the buffer to the resulting file."
+  (let* ((timestamp (mvtn-current-timestamp 'second))
+         (file-name (mvtn-touch-new-file
+                     timestamp title mvtn-default-file-extension tags encrypt))
          (template (mvtn-substitute-template
                     (mvtn-template-for-extension mvtn-default-file-extension)
                     title (format-time-string "%Y-%m-%d") timestamp))
          (buf (find-file-noselect file-name)))
-    (with-current-buffer buf (insert template) (save-buffer))
+    (when (not no-template) (with-current-buffer buf (insert template) (save-buffer)))
     ;; When creating an encrypting a file with 'epa.el', the user is prompted
     ;; for the gpg key to use everytime the buffer is saved. Once the file is
     ;; closed and reopened though, epa seems to remember the key to use.
