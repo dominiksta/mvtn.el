@@ -1,6 +1,7 @@
 ;;; mvtn-test.el --- Unit tests for mvtn -*- lexical-binding: t -*-
 
 (require 'mvtn)
+(require 'mvtn-file-helpers)
 (require 'mvtn-test-helpers)
 (require 'ert)
 (require 'thingatpt)

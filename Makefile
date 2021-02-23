@@ -2,7 +2,7 @@
 
 EMACS = emacs
 VERSION = 0.1
-EL = mvtn.el mvtn-ag.el mvtn-rg.el mvtn-pkg.el
+EL = mvtn.el mvtn-ag.el mvtn-rg.el mvtn-file-helpers.el mvtn-pkg.el
 TEST = test/mvtn-test.el test/mvtn-test-helpers.el
 
 # ----------------------------------------------------------------------
@@ -25,6 +25,7 @@ clean:
 # dependencies
 # ----------------------------------------------------------------------
 mvtn-test.elc: mvtn.el test/mvtn-test-helpers.el test/mvtn-test.el
+mvtn-file-helpers.elc: mvtn.el
 mvtn-ag.elc: mvtn.el
 mvtn-rg.elc: mvtn.el
 

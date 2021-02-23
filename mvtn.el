@@ -413,35 +413,6 @@ argument), then `mvtn-search-years' is ignored."
 
 
 ;;;###autoload
-(defun mvtn-rename-current-file (name)
-  "Changes the title depending on the major-mode and renames the
-file. In org-mode, it uses \"#+TITLE:\" to look for the title. In
-markdown-mode, it looks for the first top-level headline (a line
-starting with \"# \") and in any other mode it looks for the
-first occurence of \"title: \"."
-  (interactive "MNew filename: ")
-  (let* ((old-orig (file-name-nondirectory (buffer-file-name (current-buffer))))
-         (old-timestamp (substring old-orig 0 15))
-         (old-ext (file-name-extension old-orig))
-         (old-name+tags (substring old-orig 16 (- -1 (length old-ext))))
-         (old-tags (cadr (split-string old-name+tags " -- ")))
-         (new (format "%s %s%s.%s" old-timestamp name
-                      (if old-tags (concat " -- " old-tags) "") old-ext)))
-    (rename-file old-orig new)
-    (rename-buffer new)
-    (set-visited-file-name new))
-  (save-excursion
-    (goto-char (point-min))
-    (let ((case-fold-search nil))
-      (cond ((eq major-mode 'org-mode) (re-search-forward "^#\\+TITLE: "))
-            ((eq major-mode 'markdown-mode) (re-search-forward "^# "))
-            (t (re-search-forward "^title: "))))
-    (kill-line)
-    (insert name)
-    (save-buffer)))
-
-
-;;;###autoload
 (defun mvtn-follow-link-at-point ()
   "Follow the mvtn link under point."
   (interactive)
