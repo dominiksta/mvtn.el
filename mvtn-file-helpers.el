@@ -9,6 +9,8 @@
 
 (require 'mvtn)
 
+(declare-function dired-get-filename "ext:dired")
+
 ;;;###autoload
 (defun mvtn-rename-current-file (name)
   "Changes the title depending on the major-mode and renames the
@@ -36,6 +38,45 @@ first occurence of \"title: \"."
     (kill-line)
     (insert name)
     (save-buffer)))
+
+;;;###autoload
+(defun mvtn-import-file (filename title tags &optional move)
+  "Import the file given by FILENAME into
+`mvtn-get-create-current-year-directory' with the new filename
+given by `mvtn-generate-file-name'. By default, the file is
+copied. If MOVE is non-nil, the file is instead moved and the
+buffer visiting the file is pointed to the new direction - if
+such a buffer exists."
+  (interactive (let* ((filename (read-file-name "Filename: "))
+                      (title (read-string
+                              "Title: " (file-name-sans-extension
+                                         (file-name-nondirectory filename))))
+                      (tags (read-string "Tags: ")))
+                 (list filename title tags)))
+  (let* ((ext (or (file-name-extension filename) "txt"))
+         (mvtn-name (mvtn-generate-file-name
+                     (mvtn-current-timestamp 'second) title ext tags)))
+    (if move
+        (progn (rename-file filename mvtn-name)
+               (when (buffer-live-p (find-buffer-visiting filename))
+                 (with-current-buffer (find-buffer-visiting filename)
+                   (rename-buffer mvtn-name)
+                   (set-visited-file-name mvtn-name))))
+      (copy-file filename mvtn-name))
+    (message "Imported %s into %s" filename mvtn-name)))
+
+;;;###autoload
+(defun mvtn-import-file-dired ()
+  "Use `dired-get-filename' to populate the FILENAME argument of
+`mvtn-import-file' (which see for further details)."
+  (interactive)
+  (require 'dired)
+  (let* ((filename (dired-get-filename))
+         (title (read-string "Title: " (file-name-sans-extension
+                                        (file-name-nondirectory filename))))
+         (tags (read-string "Tags: "))
+         (move (not (yes-or-no-p "Keep original file?"))))
+    (mvtn-import-file filename title tags move)))
 
 (provide 'mvtn-file-helpers)
 
