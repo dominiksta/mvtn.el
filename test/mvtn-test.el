@@ -120,10 +120,10 @@ files. Mocking seemed like too much of a hassle here.")
 2020/20201212-134542 test2 test2 -- tags tags tags.txt
 2020/20201212-134541 test1.txt
 2020/20201212-134541 test1 (fake conflicted copy).txt
-static/20130210-134522 an old statically displayed note.org
-static/20130210-134522 an old statically displayed note.md
 static/work/20140210-134522 a note for work 2.org
-static/work/20140210-134522 a note for work 1.md"))
+static/work/20140210-134522 a note for work 1.md
+static/20130210-134522 an old statically displayed note.org
+static/20130210-134522 an old statically displayed note.md"))
   (should (string-equal
            (mapconcat 'identity
                       (mvtn-test-with-testfiles (mvtn-list-files t)) "\n")
@@ -140,10 +140,10 @@ static/work/20140210-134522 a note for work 1.md"))
 1999/19990110-134523 test3 test3.org
 1999/19990110-134522 test2 test2.txt
 1999/19990110-134522 test1 -- tags test.txt
-static/20130210-134522 an old statically displayed note.org
-static/20130210-134522 an old statically displayed note.md
 static/work/20140210-134522 a note for work 2.org
-static/work/20140210-134522 a note for work 1.md")))
+static/work/20140210-134522 a note for work 1.md
+static/20130210-134522 an old statically displayed note.org
+static/20130210-134522 an old statically displayed note.md")))
 
 
 (ert-deftest mvtn-test-link-targets ()
