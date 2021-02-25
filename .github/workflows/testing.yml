@@ -1,0 +1,49 @@
+name: Automated Unit-Testing for mvtn.el
+
+# When should these jobs run
+# Push to any of the branches
+# Pull request for the master branch
+on:
+  push:
+    # MAYB: only in master
+    # branches: [ master ]
+  pull_request:
+    branches: [ master ]
+    # MANUALLY
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    # Allow the Job to fail (e.g. for a specific emacs version)
+    # and still continie with the other jobs
+    continue-on-error: true
+    strategy:
+      matrix:
+        emacs_version:
+          - '24.1'
+          - '24.2'
+          - '24.3'
+          - '24.4'
+          - '24.5'
+          - '25.1'
+          - '25.2'
+          - '25.3'
+          - '26.1'
+          - '26.2'
+          - '26.3'
+          - '27.1'
+    steps:
+      # Required to test against different emacs version
+      - uses: purcell/setup-emacs@master
+        # Run steps with emacs version specified in the matrix above
+        with:
+          version: ${{ matrix.emacs_version }}
+      # Check out repository (we are inside of the repo-root now)
+      - uses: actions/checkout@v2
+      # TODO: Do this in an sophisticated way
+      - name: Run tests with make
+        run: |
+          make clean && make test 2>&1 | cat > test.result
+          cat test.result
+          grep FAILED test.result 2>&1 > /dev/null && exit -1
