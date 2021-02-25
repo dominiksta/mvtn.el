@@ -222,17 +222,19 @@ Does not show hidden files (prefixed with '.')"
 
 
 (defun mvtn-list-files-function-find (&optional search)
-  "GNU/POSIX find implementation for `mvtn-list-files-function'."
+  "GNU/POSIX find implementation for `mvtn-list-files-function'.
+Requires GNU sort command to return persistent, name based sorting
+since find's sorting relies on creation time"
   (split-string
    (shell-command-to-string
-    (format "%s * -type f %s -print %s"
+    (format "%s * -type f %s -print %s | sort"
             (executable-find find-program)
             (if search
                 (format "-name '*%s*'" search) "")
             (if mvtn-excluded-directories
-                (format "-o -path '*%s/*' -prune"
+                (format "-o -path '*%s' -type d -prune"
                         (mapconcat 'identity mvtn-excluded-directories
-                                   "/*' -prune -o -path '*")) "")))
+                                   "' -type d -prune -o -path '*")) "")))
    "\n" t))
 
 
