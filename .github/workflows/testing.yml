@@ -50,5 +50,4 @@ jobs:
           # Print the test results to stdout for debugging purposes
           cat test.result
           # If a test failed, exit abnormally
-          grep FAILED test.result 2>&1 > /dev/null
-          exit $?
+          grep FAILED test.result 2>&1 > /dev/null && exit -1 || exit 0
