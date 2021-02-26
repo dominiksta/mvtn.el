@@ -21,11 +21,11 @@ jobs:
     strategy:
       matrix:
         emacs_version:
-          - '24.1'
-          - '24.2'
-          - '24.3'
-          - '24.4'
-          - '24.5'
+          # - '24.1'
+          # - '24.2'
+          # - '24.3'
+          # - '24.4'
+          # - '24.5'
           - '25.1'
           - '25.2'
           - '25.3'
@@ -44,6 +44,11 @@ jobs:
       # TODO: Do this in an sophisticated way
       - name: Run tests with make
         run: |
+          # cat is necessary to write the ert output to test.result w/o
+          # it will only print the make commands itself
           make clean && make test 2>&1 | cat > test.result
+          # Print the test results to stdout for debugging purposes
           cat test.result
-          grep FAILED test.result 2>&1 > /dev/null && exit -1
+          # If a test failed, exit abnormally
+          grep FAILED test.result 2>&1 > /dev/null
+          exit $?
