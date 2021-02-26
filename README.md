@@ -1,3 +1,5 @@
+[![Automated Unit-Testing for mvtn.el](https://github.com/f1rstperson/mvtn.el/actions/workflows/testing.yml/badge.svg)](https://github.com/f1rstperson/mvtn.el/actions/workflows/testing.yml)
+
 # mvtn - "Minimum Viable Text Notes"
 
 **WARNING**: This package is yet to be tested thouroughly and is still subject
