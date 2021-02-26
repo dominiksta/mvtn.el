@@ -260,26 +260,24 @@ recursively. Limit to `mvtn-search-years' unless ALL is non-nil."
                                                 (mvtn--directory-files))))))
     (if (eq mvtn-list-files-order 'asc) filelist (reverse filelist))))
 
+(defun mvtn-generate-file-name (timestamp title extension tags &optional encrypt)
+  "Get an mvtn file-name following this template:
+\"{TIMESTAMP} {TITLE} -- {TAGS}.{EXTENSION}[.gpg]\""
+  (substring-no-properties
+   (format "%s/%s %s%s.%s%s" (mvtn-get-create-current-year-directory)
+           timestamp title (if (car (split-string tags)) (concat " -- " tags) "")
+           extension (if encrypt ".gpg" ""))))
+
 (defun mvtn-touch-new-file (timestamp title extension tags &optional encrypt)
-  "Creates a new mvtn note file in `mvtn-get-create-current-year-directory' with
-TITLE (string) as title and TAGS (strings) as tags. When ENCRYPT is non-nil,
-.gpg is appended to the filename. The naming scheme follows the
-following template:
-
-\"{TIMESTAMP} {TITLE} -- {TAGS}.{EXTENSION}[.gpg]\"
-
-Returns the full name of the newly created file."
-  (let* ((tags-stripped (car (split-string tags)))
-         (file-name (substring-no-properties
-                     (format "%s/%s %s%s.%s%s" (mvtn-get-create-current-year-directory)
-                             timestamp title (if tags-stripped (concat " -- " tags) "")
-                             extension (if encrypt ".gpg" "")))))
-    (write-region "" nil file-name) file-name))
+  "Use `mvtn-generate-file-name' to create a new file.
+RETURN the full name of the newly created file."
+  (let ((file-name (mvtn-generate-file-name timestamp title extension tags encrypt)))
+   (write-region "" nil file-name) file-name))
 
 (defun mvtn-create-new-file (title tags &optional encrypt no-template)
   "Use `mvtn-touch-new-file' to create a new file, insert a
 template according to `mvtn-file-extension-templates' and open
-the buffer to the resulting file."
+the buffer to the resulting file. RETURN that buffer."
   (let* ((timestamp (mvtn-current-timestamp 'second))
          (file-name (mvtn-touch-new-file
                      timestamp title mvtn-default-file-extension tags encrypt))
@@ -414,35 +412,6 @@ argument), then `mvtn-search-years' is ignored."
     (error "Invalid mvtn filename. Cancelled backlink search."))
   (let ((timestamp (mvtn--extract-note-identity file)))
     (mvtn-search-full-text (concat "\\^\\^" timestamp) all)))
-
-
-;;;###autoload
-(defun mvtn-rename-current-file (name)
-  "Changes the title depending on the major-mode and renames the
-file. In org-mode, it uses \"#+TITLE:\" to look for the title. In
-markdown-mode, it looks for the first top-level headline (a line
-starting with \"# \") and in any other mode it looks for the
-first occurence of \"title: \"."
-  (interactive "MNew filename: ")
-  (let* ((old-orig (file-name-nondirectory (buffer-file-name (current-buffer))))
-         (old-timestamp (substring old-orig 0 15))
-         (old-ext (file-name-extension old-orig))
-         (old-name+tags (substring old-orig 16 (- -1 (length old-ext))))
-         (old-tags (cadr (split-string old-name+tags " -- ")))
-         (new (format "%s %s%s.%s" old-timestamp name
-                      (if old-tags (concat " -- " old-tags) "") old-ext)))
-    (rename-file old-orig new)
-    (rename-buffer new)
-    (set-visited-file-name new))
-  (save-excursion
-    (goto-char (point-min))
-    (let ((case-fold-search nil))
-      (cond ((eq major-mode 'org-mode) (re-search-forward "^#\\+TITLE: "))
-            ((eq major-mode 'markdown-mode) (re-search-forward "^# "))
-            (t (re-search-forward "^title: "))))
-    (kill-line)
-    (insert name)
-    (save-buffer)))
 
 
 ;;;###autoload

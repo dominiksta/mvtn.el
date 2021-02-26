@@ -2,8 +2,14 @@
 
 EMACS = emacs
 VERSION = 0.1
-EL = mvtn.el mvtn-ag.el mvtn-rg.el mvtn-pkg.el
-TEST = test/mvtn-test.el test/mvtn-test-helpers.el
+EL = mvtn.el \
+	mvtn-file-helpers.el \
+	mvtn-ag.el \
+	mvtn-rg.el \
+	mvtn-pkg.el
+TEST = test/mvtn-test.el \
+	test/mvtn-test-helpers.el \
+	test/mvtn-test-file-helpers.el
 
 # ----------------------------------------------------------------------
 # compile
@@ -24,7 +30,9 @@ clean:
 # ----------------------------------------------------------------------
 # dependencies
 # ----------------------------------------------------------------------
-mvtn-test.elc: mvtn.el test/mvtn-test-helpers.el test/mvtn-test.el
+mvtn-test.elc: mvtn.el test/mvtn-test-helpers.el
+mvtn-test-file-helpers.elc: mvtn.el test/mvtn-test-helpers.el test/mvtn-test.el
+mvtn-file-helpers.elc: mvtn.el
 mvtn-ag.elc: mvtn.el
 mvtn-rg.elc: mvtn.el
 
@@ -34,7 +42,10 @@ mvtn-rg.elc: mvtn.el
 # ----------------------------------------------------------------------
 test: compile
 	cd test && \
-	$(EMACS) -batch -Q -L .. -L . -l mvtn-test.elc -f ert-run-tests-batch
+	$(EMACS) -batch -Q -L .. -L . \
+	-l mvtn-test.elc \
+	-l mvtn-test-file-helpers.elc \
+	-f ert-run-tests-batch
 
 
 # ----------------------------------------------------------------------
