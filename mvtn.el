@@ -212,13 +212,13 @@ one of 'year, 'month, 'day, 'hour, 'minute or 'second."
 Does not show hidden files (prefixed with '.')"
   (mapcar (lambda (file-name)
             (substring file-name 2))
-          (directory-files-recursively
+          (sort (directory-files-recursively
            "." (if search
                    (format "^[^\\.]*%s" search)
                  "^[^\\.]") nil
            (lambda (dir-name)
              (not (member (file-name-nondirectory dir-name)
-                          mvtn-excluded-directories))))))
+                          mvtn-excluded-directories)))) 'string<)))
 
 
 (defun mvtn-list-files-function-find (&optional search)
