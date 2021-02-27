@@ -148,11 +148,12 @@ static/20130210-134522 an old statically displayed note.md"))))
 
 (ert-deftest mvtn-list-files-find ()
   "Test `mvtn-list-files': GNU find"
-  (let ((mvtn-list-files-function 'mvtn-list-files-function-find))
-    (should (string-equal
-             (mapconcat 'identity
-                        (mvtn-test-with-testfiles (mvtn-list-files)) "\n")
-             "2021/20210110-134524 test3 test3.org
+  (unless (eq system-type 'windows-nt)
+    (let ((mvtn-list-files-function 'mvtn-list-files-function-find))
+      (should (string-equal
+               (mapconcat 'identity
+                          (mvtn-test-with-testfiles (mvtn-list-files)) "\n")
+               "2021/20210110-134524 test3 test3.org
 2021/20210110-134523 test2 test2.txt
 2021/20210110-134522 test1 -- i have tags.md
 2020/20201212-134544 test3 test3.org
@@ -163,10 +164,10 @@ static/work/20140210-134522 a note for work 2.org
 static/work/20140210-134522 a note for work 1.md
 static/20130210-134522 an old statically displayed note.org
 static/20130210-134522 an old statically displayed note.md"))
-    (should (string-equal
-             (mapconcat 'identity
-                        (mvtn-test-with-testfiles (mvtn-list-files t)) "\n")
-             "2021/20210110-134524 test3 test3.org
+      (should (string-equal
+               (mapconcat 'identity
+                          (mvtn-test-with-testfiles (mvtn-list-files t)) "\n")
+               "2021/20210110-134524 test3 test3.org
 2021/20210110-134523 test2 test2.txt
 2021/20210110-134522 test1 -- i have tags.md
 2020/20201212-134544 test3 test3.org
@@ -182,7 +183,7 @@ static/20130210-134522 an old statically displayed note.md"))
 static/work/20140210-134522 a note for work 2.org
 static/work/20140210-134522 a note for work 1.md
 static/20130210-134522 an old statically displayed note.org
-static/20130210-134522 an old statically displayed note.md"))))
+static/20130210-134522 an old statically displayed note.md")))))
 
 
 (ert-deftest mvtn-test-link-targets ()
