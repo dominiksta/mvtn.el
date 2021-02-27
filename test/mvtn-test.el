@@ -108,12 +108,13 @@ files. Mocking seemed like too much of a hassle here.")
                         "20200101-010101 test name")))
 
 
-(ert-deftest mvtn-list-files ()
-  "Test `mvtn-list-files'"
-  (should (string-equal
-           (mapconcat 'identity
-                      (mvtn-test-with-testfiles (mvtn-list-files)) "\n")
-           "2021/20210110-134524 test3 test3.org
+(ert-deftest mvtn-list-files-native ()
+  "Test `mvtn-list-files': native (emacs)"
+  (let ((mvtn-list-files-function 'mvtn-list-files-function-native))
+    (should (string-equal
+             (mapconcat 'identity
+                        (mvtn-test-with-testfiles (mvtn-list-files)) "\n")
+             "2021/20210110-134524 test3 test3.org
 2021/20210110-134523 test2 test2.txt
 2021/20210110-134522 test1 -- i have tags.md
 2020/20201212-134544 test3 test3.org
@@ -124,10 +125,10 @@ static/work/20140210-134522 a note for work 2.org
 static/work/20140210-134522 a note for work 1.md
 static/20130210-134522 an old statically displayed note.org
 static/20130210-134522 an old statically displayed note.md"))
-  (should (string-equal
-           (mapconcat 'identity
-                      (mvtn-test-with-testfiles (mvtn-list-files t)) "\n")
-           "2021/20210110-134524 test3 test3.org
+    (should (string-equal
+             (mapconcat 'identity
+                        (mvtn-test-with-testfiles (mvtn-list-files t)) "\n")
+             "2021/20210110-134524 test3 test3.org
 2021/20210110-134523 test2 test2.txt
 2021/20210110-134522 test1 -- i have tags.md
 2020/20201212-134544 test3 test3.org
@@ -143,7 +144,45 @@ static/20130210-134522 an old statically displayed note.md"))
 static/work/20140210-134522 a note for work 2.org
 static/work/20140210-134522 a note for work 1.md
 static/20130210-134522 an old statically displayed note.org
-static/20130210-134522 an old statically displayed note.md")))
+static/20130210-134522 an old statically displayed note.md"))))
+
+(ert-deftest mvtn-list-files-find ()
+  "Test `mvtn-list-files': GNU find"
+  (let ((mvtn-list-files-function 'mvtn-list-files-function-find))
+    (should (string-equal
+             (mapconcat 'identity
+                        (mvtn-test-with-testfiles (mvtn-list-files)) "\n")
+             "2021/20210110-134524 test3 test3.org
+2021/20210110-134523 test2 test2.txt
+2021/20210110-134522 test1 -- i have tags.md
+2020/20201212-134544 test3 test3.org
+2020/20201212-134542 test2 test2 -- tags tags tags.txt
+2020/20201212-134541 test1.txt
+2020/20201212-134541 test1 (fake conflicted copy).txt
+static/work/20140210-134522 a note for work 2.org
+static/work/20140210-134522 a note for work 1.md
+static/20130210-134522 an old statically displayed note.org
+static/20130210-134522 an old statically displayed note.md"))
+    (should (string-equal
+             (mapconcat 'identity
+                        (mvtn-test-with-testfiles (mvtn-list-files t)) "\n")
+             "2021/20210110-134524 test3 test3.org
+2021/20210110-134523 test2 test2.txt
+2021/20210110-134522 test1 -- i have tags.md
+2020/20201212-134544 test3 test3.org
+2020/20201212-134542 test2 test2 -- tags tags tags.txt
+2020/20201212-134541 test1.txt
+2020/20201212-134541 test1 (fake conflicted copy).txt
+2018/20181212-134544 test3 test3.org
+2018/20181212-134542 test2 test2 -- tags tags tags.txt
+2018/20181212-134541 test1.txt
+1999/19990110-134523 test3 test3.org
+1999/19990110-134522 test2 test2.txt
+1999/19990110-134522 test1 -- tags test.txt
+static/work/20140210-134522 a note for work 2.org
+static/work/20140210-134522 a note for work 1.md
+static/20130210-134522 an old statically displayed note.org
+static/20130210-134522 an old statically displayed note.md"))))
 
 
 (ert-deftest mvtn-test-link-targets ()
