@@ -1,4 +1,4 @@
-name: Automated Unit-Testing for mvtn.el
+name: Unit-Tests
 
 # When should these jobs run
 # Push to any of the branches
