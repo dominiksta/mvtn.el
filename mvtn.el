@@ -291,20 +291,19 @@ the buffer to the resulting file. RETURN that buffer."
     buf))
 
 
-(defun mvtn--extract-note-identity (noteid &optional notename)
-  "Extracts the timestamp from NOTEID (any string representation
-of a note's name). When NOTENAME is given, also extracts the
+(defun mvtn--extract-note-identity (notename &optional filename)
+  "Extracts the timestamp from NOTENAME (any string representation
+of a note's name). When FILENAME is given, also extracts the
 filename without filextension and tags"
-  (when (not
-         (if notename
-             (string-match "[[:digit:]]\\{8\\}-[[:digit:]]\\{6\\} .+" noteid)
-           (string-match "[[:digit:]]\\{8\\}-[[:digit:]]\\{6\\}" noteid)))
+  (unless (if filename
+              (string-match "[[:digit:]]\\{8\\}-[[:digit:]]\\{6\\} [^\\^\\.]*" notename)
+            (string-match "[[:digit:]]\\{8\\}-[[:digit:]]\\{6\\}" notename))
     (error (concat "Failed to extract note identity. "
                    "Probably an invalid filename or timestamp: %s")
-           noteid))
-  (let* ((match (match-string-no-properties 0 noteid))
+           notename))
+  (let* ((match (match-string-no-properties 0 notename))
          (sep (if (string-match-p "--" match) "--" "\\.")))
-    (string-trim (car (split-string match sep)) nil "[\\^ ]+")))
+    (string-trim (car (split-string match sep)))))
 
 
 (defun mvtn-link-targets (link)
