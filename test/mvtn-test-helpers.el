@@ -23,7 +23,8 @@ timestamp. Example:
 
 (defmacro mvtn-test-with-testfiles (no-delete &rest body)
   `(let ((mvtn-note-directory mvtn-test-note-dir))
-     (delete-directory mvtn-test-note-dir t)
+     (when (file-exists-p mvtn-test-note-dir)
+       (delete-directory mvtn-test-note-dir t))
      (mkdir mvtn-test-note-dir) (cd mvtn-test-note-dir)
      (mkdir "1999") (cd "1999")
      (mvtn-test-touch "19990110-134522 test1 -- tags test.txt")
