@@ -213,12 +213,10 @@ Does not show hidden files (prefixed with '.')"
   (mapcar (lambda (file-name)
             (substring file-name 2))
           (sort (directory-files-recursively
-           "." (if search
-                   (format "^[^\\.]*%s" search)
-                 "^[^\\.]") nil
-           (lambda (dir-name)
-             (not (member (file-name-nondirectory dir-name)
-                          mvtn-excluded-directories)))) 'string<)))
+                 "." (if search (format "^[^\\.]*%s" search) "^[^\\.]") nil
+                 (lambda (dir-name)
+                   (not (member (file-name-nondirectory dir-name)
+                                mvtn-excluded-directories)))) 'string<)))
 
 
 (defun mvtn-list-files-function-find (&optional search)
@@ -272,7 +270,7 @@ recursively. Limit to `mvtn-search-years' unless ALL is non-nil."
   "Use `mvtn-generate-file-name' to create a new file.
 RETURN the full name of the newly created file."
   (let ((file-name (mvtn-generate-file-name timestamp title extension tags encrypt)))
-   (write-region "" nil file-name) file-name))
+    (write-region "" nil file-name) file-name))
 
 (defun mvtn-create-new-file (title tags &optional encrypt no-template)
   "Use `mvtn-touch-new-file' to create a new file, insert a

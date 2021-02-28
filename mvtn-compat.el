@@ -6,7 +6,7 @@
 (defun mvtn-list-files-function-native (&optional search)
   "Native (elisp) implementation for `mvtn-list-files-function'.
 Does not show hidden files (prefixed with '.').
-Emacs <27 compatibility - less performant since it needs to traverse all
+Emacs <27 compatibility: less performant since it needs to traverse all
 excluded directories and only filters afterwards."
   (mapcar (lambda (file-name)
             (substring file-name (1+ (length default-directory))))
