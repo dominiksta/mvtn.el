@@ -51,7 +51,8 @@ files. Mocking seemed like too much of a hassle here.")
 
 (ert-deftest mvtn-test-get-create-current-note-directory ()
   "Test `mvtn-get-create-current-year-directory'"
-  (delete-directory mvtn-test-note-dir t)
+  (when (file-exists-p mvtn-test-note-dir)
+    (delete-directory mvtn-test-note-dir t))
   (let ((mvtn-note-directory mvtn-test-note-dir))
     (should (not (file-exists-p mvtn-note-directory)))
     (should (string-equal (mvtn-get-create-current-year-directory)
@@ -66,7 +67,8 @@ files. Mocking seemed like too much of a hassle here.")
 
 (ert-deftest mvtn-test-create-new-file ()
   "Test `mvtn-create-new-file'"
-  (delete-directory mvtn-test-note-dir t)
+  (when (file-exists-p mvtn-test-note-dir)
+    (delete-directory mvtn-test-note-dir t))
   (let ((mvtn-note-directory mvtn-test-note-dir)
         (mvtn-default-file-extension "test"))
     (mvtn-create-new-file "My Note Title" "tag1 tag2")
