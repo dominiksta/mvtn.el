@@ -50,6 +50,20 @@ test: compile
 
 
 # ----------------------------------------------------------------------
+# load in default emacs
+# ----------------------------------------------------------------------
+run: compile
+	cd test && \
+	$(EMACS) -Q --debug-init -L .. -L . \
+	-l mvtn-test.el \
+	-l mvtn-test-file-helpers.el \
+	--eval '(setq mvtn-note-directory mvtn-test-note-dir)' \
+	--eval '(mvtn-test-with-testfiles t)' \
+	--eval '(find-file "mvtn-test.el")' \
+	--eval '(split-window)' \
+	--eval '(dired mvtn-note-directory)'
+
+# ----------------------------------------------------------------------
 # packaging
 # ----------------------------------------------------------------------
 mvtn-$(VERSION).tar: $(EL)

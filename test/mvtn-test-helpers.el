@@ -21,7 +21,7 @@ timestamp. Example:
   (write-region "" nil filename))
 
 
-(defmacro mvtn-test-with-testfiles (&rest body)
+(defmacro mvtn-test-with-testfiles (no-delete &rest body)
   `(let ((mvtn-note-directory mvtn-test-note-dir))
      (delete-directory mvtn-test-note-dir t)
      (mkdir mvtn-test-note-dir) (cd mvtn-test-note-dir)
@@ -69,7 +69,7 @@ And some more content."
      (mvtn-test-touch "20140210-134522 a note for work 2.org")
      (cd "../../..")
      (let ((result (progn ,@body)))
-       (delete-directory mvtn-test-note-dir t)
+       (when (not ,no-delete) (delete-directory mvtn-test-note-dir t))
        result)))
 
 (provide 'mvtn-test-helpers)

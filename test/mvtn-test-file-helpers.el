@@ -6,7 +6,7 @@
 
 (ert-deftest mvtn-test-rename-current-file ()
   "Test `mvtn-rename-current-file'"
-  (mvtn-test-with-testfiles
+  (mvtn-test-with-testfiles nil
    (let ((orig-file (concat mvtn-test-note-dir
                             "/1999/19990110-134522 test2 test2.txt"))
          (should-new-file (concat mvtn-test-note-dir
