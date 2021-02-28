@@ -1,5 +1,7 @@
 ;;; mvtn-test-helpers.el --- Helpers for mvtn unit test -*- lexical-binding: t -*-
 
+(require 'seq)
+
 (defun mvtn-test-file-exists-disregarding-timestamp-p (filename dir)
   "Check wether FILENAME exists in DIR, disregarding mvtn
 timestamps. Therefore, TIMESTAMP has to be provided *without* the
