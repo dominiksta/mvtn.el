@@ -213,12 +213,10 @@ Does not show hidden files (prefixed with '.')"
   (mapcar (lambda (file-name)
             (substring file-name 2))
           (sort (directory-files-recursively
-           "." (if search
-                   (format "^[^\\.]*%s" search)
-                 "^[^\\.]") nil
-           (lambda (dir-name)
-             (not (member (file-name-nondirectory dir-name)
-                          mvtn-excluded-directories)))) 'string<)))
+                 "." (if search (format "^[^\\.]*%s" search) "^[^\\.]") nil
+                 (lambda (dir-name)
+                   (not (member (file-name-nondirectory dir-name)
+                                mvtn-excluded-directories)))) 'string<)))
 
 
 (defun mvtn-list-files-function-find (&optional search)
@@ -272,7 +270,7 @@ recursively. Limit to `mvtn-search-years' unless ALL is non-nil."
   "Use `mvtn-generate-file-name' to create a new file.
 RETURN the full name of the newly created file."
   (let ((file-name (mvtn-generate-file-name timestamp title extension tags encrypt)))
-   (write-region "" nil file-name) file-name))
+    (write-region "" nil file-name) file-name))
 
 (defun mvtn-create-new-file (title tags &optional encrypt no-template)
   "Use `mvtn-touch-new-file' to create a new file, insert a
@@ -293,20 +291,19 @@ the buffer to the resulting file. RETURN that buffer."
     buf))
 
 
-(defun mvtn--extract-note-identity (noteid &optional notename)
-  "Extracts the timestamp from NOTEID (any string representation
-of a note's name). When NOTENAME is given, also extracts the
+(defun mvtn--extract-note-identity (notename &optional filename)
+  "Extracts the timestamp from NOTENAME (any string representation
+of a note's name). When FILENAME is given, also extracts the
 filename without filextension and tags"
-  (when (not
-         (if notename
-             (string-match "[[:digit:]]\\{8\\}-[[:digit:]]\\{6\\} .+" noteid)
-           (string-match "[[:digit:]]\\{8\\}-[[:digit:]]\\{6\\}" noteid)))
+  (unless (if filename
+              (string-match "[[:digit:]]\\{8\\}-[[:digit:]]\\{6\\} [^\\^\\.]*" notename)
+            (string-match "[[:digit:]]\\{8\\}-[[:digit:]]\\{6\\}" notename))
     (error (concat "Failed to extract note identity. "
                    "Probably an invalid filename or timestamp: %s")
-           noteid))
-  (let* ((match (match-string-no-properties 0 noteid))
+           notename))
+  (let* ((match (match-string-no-properties 0 notename))
          (sep (if (string-match-p "--" match) "--" "\\.")))
-    (string-trim (car (split-string match sep)) nil "[\\^ ]+")))
+    (string-trim (car (split-string match sep)))))
 
 
 (defun mvtn-link-targets (link)
@@ -328,7 +325,7 @@ Example:
   (let* ((timestamp (mvtn--extract-note-identity link))
          (year-dir (mvtn-timestamp-field timestamp 'year))
          (matches '()))
-    (dolist (current-dir (flatten-list (cons year-dir mvtn-static-note-directories)))
+    (dolist (current-dir `(,year-dir ,@mvtn-static-note-directories))
       (let ((default-directory (format "%s/%s" mvtn-note-directory current-dir)))
         (setq matches (append matches
                               (mapcar (lambda (filename)
@@ -466,6 +463,8 @@ used to encrypt the file with gpg."
   (let* ((default-directory mvtn-note-directory)
          (answer (completing-read "Open note: " (mvtn-list-files all))))
     (find-file answer)))
+
+(when (< emacs-major-version 27) (require 'mvtn-compat))
 
 (provide 'mvtn)
 

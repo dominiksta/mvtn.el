@@ -51,7 +51,8 @@ files. Mocking seemed like too much of a hassle here.")
 
 (ert-deftest mvtn-test-get-create-current-note-directory ()
   "Test `mvtn-get-create-current-year-directory'"
-  (delete-directory mvtn-test-note-dir t)
+  (when (file-exists-p mvtn-test-note-dir)
+    (delete-directory mvtn-test-note-dir t))
   (let ((mvtn-note-directory mvtn-test-note-dir))
     (should (not (file-exists-p mvtn-note-directory)))
     (should (string-equal (mvtn-get-create-current-year-directory)
@@ -66,7 +67,8 @@ files. Mocking seemed like too much of a hassle here.")
 
 (ert-deftest mvtn-test-create-new-file ()
   "Test `mvtn-create-new-file'"
-  (delete-directory mvtn-test-note-dir t)
+  (when (file-exists-p mvtn-test-note-dir)
+    (delete-directory mvtn-test-note-dir t))
   (let ((mvtn-note-directory mvtn-test-note-dir)
         (mvtn-default-file-extension "test"))
     (mvtn-create-new-file "My Note Title" "tag1 tag2")
@@ -113,7 +115,7 @@ files. Mocking seemed like too much of a hassle here.")
   (let ((mvtn-list-files-function 'mvtn-list-files-function-native))
     (should (string-equal
              (mapconcat 'identity
-                        (mvtn-test-with-testfiles (mvtn-list-files)) "\n")
+                        (mvtn-test-with-testfiles nil (mvtn-list-files)) "\n")
              "2021/20210110-134524 test3 test3.org
 2021/20210110-134523 test2 test2.txt
 2021/20210110-134522 test1 -- i have tags.md
@@ -127,7 +129,7 @@ static/20130210-134522 an old statically displayed note.org
 static/20130210-134522 an old statically displayed note.md"))
     (should (string-equal
              (mapconcat 'identity
-                        (mvtn-test-with-testfiles (mvtn-list-files t)) "\n")
+                        (mvtn-test-with-testfiles nil (mvtn-list-files t)) "\n")
              "2021/20210110-134524 test3 test3.org
 2021/20210110-134523 test2 test2.txt
 2021/20210110-134522 test1 -- i have tags.md
@@ -152,7 +154,7 @@ static/20130210-134522 an old statically displayed note.md"))))
     (let ((mvtn-list-files-function 'mvtn-list-files-function-find))
       (should (string-equal
                (mapconcat 'identity
-                          (mvtn-test-with-testfiles (mvtn-list-files)) "\n")
+                          (mvtn-test-with-testfiles nil (mvtn-list-files)) "\n")
                "2021/20210110-134524 test3 test3.org
 2021/20210110-134523 test2 test2.txt
 2021/20210110-134522 test1 -- i have tags.md
@@ -166,7 +168,7 @@ static/20130210-134522 an old statically displayed note.org
 static/20130210-134522 an old statically displayed note.md"))
       (should (string-equal
                (mapconcat 'identity
-                          (mvtn-test-with-testfiles (mvtn-list-files t)) "\n")
+                          (mvtn-test-with-testfiles nil (mvtn-list-files t)) "\n")
                "2021/20210110-134524 test3 test3.org
 2021/20210110-134523 test2 test2.txt
 2021/20210110-134522 test1 -- i have tags.md
@@ -188,7 +190,7 @@ static/20130210-134522 an old statically displayed note.md")))))
 
 (ert-deftest mvtn-test-link-targets ()
   "Test `mvtn-link-targets'"
-  (mvtn-test-with-testfiles
+  (mvtn-test-with-testfiles nil
    (should (mvtn-link-targets "^^20210110-134524 test3 test3.org^^"))
    (should (mvtn-link-targets "^^20210110-134524 test3 test3^^"))
    (should (mvtn-link-targets "^^20210110-134524^^"))
@@ -204,7 +206,7 @@ static/20130210-134522 an old statically displayed note.md")))))
 
 (ert-deftest mvtn-test-link-action-search ()
   "Test `mvtn-link-actions' and `mvtn-link-action-search'"
-  (mvtn-test-with-testfiles
+  (mvtn-test-with-testfiles nil
    (mvtn-follow-link "^^20181212-134541^^")
    (mvtn-follow-link "^^20181212-134541 :: content^^")
    (should (string-equal (word-at-point) "content"))
