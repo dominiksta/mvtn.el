@@ -4,12 +4,12 @@ EMACS   = emacs
 VERSION = 0.1
 EL      = mvtn.el \
           mvtn-compat.el \
-	      mvtn-file-helpers.el \
-	      mvtn-ag.el \
-	      mvtn-rg.el
+          mvtn-file-helpers.el \
+          mvtn-ag.el \
+          mvtn-rg.el
 TEST    = test/mvtn-test.el \
-	      test/mvtn-test-helpers.el \
-	      test/mvtn-test-file-helpers.el
+          test/mvtn-test-helpers.el \
+          test/mvtn-test-file-helpers.el
 
 # ----------------------------------------------------------------------
 # compile
