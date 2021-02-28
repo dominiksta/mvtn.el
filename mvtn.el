@@ -328,7 +328,7 @@ Example:
   (let* ((timestamp (mvtn--extract-note-identity link))
          (year-dir (mvtn-timestamp-field timestamp 'year))
          (matches '()))
-    (dolist (current-dir (flatten-list (cons year-dir mvtn-static-note-directories)))
+    (dolist (current-dir `(,year-dir ,@mvtn-static-note-directories))
       (let ((default-directory (format "%s/%s" mvtn-note-directory current-dir)))
         (setq matches (append matches
                               (mapcar (lambda (filename)
@@ -466,6 +466,8 @@ used to encrypt the file with gpg."
   (let* ((default-directory mvtn-note-directory)
          (answer (completing-read "Open note: " (mvtn-list-files all))))
     (find-file answer)))
+
+(when (< emacs-major-version 27) (require 'mvtn-compat))
 
 (provide 'mvtn)
 

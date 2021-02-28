@@ -1,15 +1,15 @@
 .SUFFIXES = .elc .el
 
-EMACS = emacs
+EMACS   = emacs
 VERSION = 0.1
-EL = mvtn.el \
-	mvtn-file-helpers.el \
-	mvtn-ag.el \
-	mvtn-rg.el \
-	mvtn-pkg.el
-TEST = test/mvtn-test.el \
-	test/mvtn-test-helpers.el \
-	test/mvtn-test-file-helpers.el
+EL      = mvtn.el \
+          mvtn-compat.el \
+	      mvtn-file-helpers.el \
+	      mvtn-ag.el \
+	      mvtn-rg.el
+TEST    = test/mvtn-test.el \
+	      test/mvtn-test-helpers.el \
+	      test/mvtn-test-file-helpers.el
 
 # ----------------------------------------------------------------------
 # compile
@@ -30,6 +30,7 @@ clean:
 # ----------------------------------------------------------------------
 # dependencies
 # ----------------------------------------------------------------------
+mvtn.elc: mvtn-compat.el
 mvtn-test.elc: mvtn.el test/mvtn-test-helpers.el
 mvtn-test-file-helpers.elc: mvtn.el test/mvtn-test-helpers.el test/mvtn-test.el
 mvtn-file-helpers.elc: mvtn.el
