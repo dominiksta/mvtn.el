@@ -464,6 +464,31 @@ used to encrypt the file with gpg."
          (answer (completing-read "Open note: " (mvtn-list-files all))))
     (find-file answer)))
 
+(defvar mvtn-minor-mode-map (make-sparse-keymap))
+(define-key mvtn-minor-mode-map (kbd "C-c . o") 'mvtn-follow-link-at-point)
+(define-key mvtn-minor-mode-map (kbd "C-c . i") 'mvtn-insert-link)
+(define-key mvtn-minor-mode-map (kbd "C-c . b") 'mvtn-search-backlinks)
+(define-key mvtn-minor-mode-map (kbd "C-c . r") 'mvtn-rename-current-file)
+(defvar mvtn-global-map (make-sparse-keymap))
+(define-key mvtn-global-map (kbd "n") 'mvtn-new-note)
+(define-key mvtn-global-map (kbd "o") 'mvtn-open-note)
+(define-key mvtn-global-map (kbd "s") 'mvtn-search-full-text)
+(define-key mvtn-global-map (kbd "j") 'mvtn-jump-current-year-directory)
+(define-key mvtn-global-map (kbd "t") 'mvtn-tag-file-list)
+(global-set-key (kbd "C-x C-.") mvtn-global-map)
+
+(define-minor-mode mvtn-minor-mode "A minor mode for editing mvtn notes"
+  nil " mvtn" mvtn-minor-mode-map)
+
+(defun maybe-enable-mvtn-minor-mode ()
+  "Enable `mvtn-minor-mode' when file is in `mvtn-note-directory'"
+    (condition-case nil
+        (when (string-match-p (expand-file-name mvtn-note-directory)
+                              (buffer-file-name (current-buffer)))
+          (mvtn-minor-mode 1)) (error nil)))
+
+(add-hook 'text-mode-hook 'maybe-enable-mvtn-minor-mode)
+
 (when (< emacs-major-version 27) (require 'mvtn-compat))
 
 (provide 'mvtn)
