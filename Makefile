@@ -5,6 +5,7 @@ VERSION = 0.1
 EL      = mvtn.el \
           mvtn-compat.el \
           mvtn-file-helpers.el \
+          mvtn-tag-addons.el \
           mvtn-ag.el \
           mvtn-rg.el
 TEST    = test/mvtn-test.el \
