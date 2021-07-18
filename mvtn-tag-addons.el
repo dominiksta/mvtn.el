@@ -50,6 +50,10 @@ called on its own."
   (setq tabulated-list-sort-key (cons "Filename" nil))
   (add-hook 'tabulated-list-revert-hook 'mvtn--tag-file-list-refresh nil t))
 
+(define-key mvtn-tag-file-list-mode-map (kbd "o") 'mvtn-tag-file-list-open)
+(define-key mvtn-tag-file-list-mode-map (kbd "C-o")
+  'mvtn-tag-file-list-open-keep-focus)
+
 (defun mvtn--tag-file-list-refresh ()
   "Called when an `mvtn-tag-file-list-mode' buffer is reverted or
 created."
@@ -73,7 +77,24 @@ created."
 (defun mvtn--tag-file-list-action (button)
   "The action taken when a note in an `mvtn-tag-file-list' buffer
 is clicked."
-  (find-file-other-window
+  (find-file
    (concat mvtn-note-directory "/" (button-get button 'filename))))
+
+(defun mvtn-tag-file-list-open (&optional keep-focus)
+  "Open up the file under point in another window in a buffer
+produced by `mvtn-tag-file-list'. If KEEP-FOCUS is non-nil, the
+focus is kept in the `mvtn-tag-file-list-mode' buffer instead of
+the opened file."
+  (interactive "P")
+  (let ((filename (concat mvtn-note-directory "/"
+                          (car (elt (tabulated-list-get-entry (point)) 0))))
+        (prev-buffer (current-buffer)))
+    (find-file-other-window filename)
+    (if keep-focus (select-window (get-buffer-window prev-buffer)))))
+
+(defun mvtn-tag-file-list-open-keep-focus ()
+  "Call `mvtn-tag-file-list-open' with KEEP-FOCUS set to t."
+  (interactive)
+  (mvtn-tag-file-list-open t))
 
 (provide 'mvtn-tag-addons)
