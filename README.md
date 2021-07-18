@@ -1,4 +1,4 @@
-[![Unit-Tests](https://github.com/f1rstperson/mvtn.el/actions/workflows/testing.yml/badge.svg)](https://github.com/f1rstperson/mvtn.el/actions/workflows/testing.yml)
+[![Unit-Tests](https://github.com/dominiksta/mvtn.el/actions/workflows/testing.yml/badge.svg)](https://github.com/dominiksta/mvtn.el/actions/workflows/testing.yml)
 
 # mvtn - "Minimum Viable Text Notes"
 

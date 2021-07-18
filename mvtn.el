@@ -1,10 +1,10 @@
 ;;; mvtn.el --- Minimum Viable Text Notes -*- lexical-binding: t -*-
 
-;; Author: f1p, phga
-;; Maintainer: f1p
+;; Author: dominiksta, phga
+;; Maintainer: dominiksta
 ;; Version: 0.1
 ;; Package-Requires: ((emacs "26"))
-;; Homepage: https://github.com/f1rstperson/mvtn
+;; Homepage: https://github.com/dominiksta/mvtn.el
 ;; Keywords: notes notetaking minimal links
 
 
