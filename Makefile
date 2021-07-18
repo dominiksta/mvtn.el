@@ -9,7 +9,8 @@ EL      = mvtn.el \
           mvtn-rg.el
 TEST    = test/mvtn-test.el \
           test/mvtn-test-helpers.el \
-          test/mvtn-test-file-helpers.el
+          test/mvtn-test-file-helpers.el \
+          test/mvtn-test-tag-addons.el
 
 # ----------------------------------------------------------------------
 # compile
@@ -33,6 +34,7 @@ clean:
 mvtn.elc: mvtn-compat.el
 mvtn-test.elc: mvtn.el test/mvtn-test-helpers.el
 mvtn-test-file-helpers.elc: mvtn.el test/mvtn-test-helpers.el test/mvtn-test.el
+mvtn-test-tag-addons.elc: mvtn.el test/mvtn-test-helpers.el test/mvtn-test.el
 mvtn-file-helpers.elc: mvtn.el
 mvtn-ag.elc: mvtn.el
 mvtn-rg.elc: mvtn.el
@@ -46,6 +48,7 @@ test: compile
 	$(EMACS) -batch -Q -L .. -L . \
 	-l mvtn-test.elc \
 	-l mvtn-test-file-helpers.elc \
+	-l mvtn-test-tag-addons.elc \
 	-f ert-run-tests-batch
 
 
@@ -57,6 +60,7 @@ run: compile
 	$(EMACS) -Q --debug-init -L .. -L . \
 	-l mvtn-test.el \
 	-l mvtn-test-file-helpers.el \
+	-l mvtn-test-tag-addons.el \
 	--eval '(setq mvtn-note-directory mvtn-test-note-dir)' \
 	--eval '(mvtn-test-with-testfiles t)' \
 	--eval '(find-file "mvtn-test.el")' \
