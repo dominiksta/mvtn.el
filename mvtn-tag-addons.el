@@ -46,8 +46,8 @@ a prefix argument, ignore `mvtn-search-years'."
   "Mvtn Tag File List"
   "The major-mode for `mvtn-tag-file-list'. Should likely not be
 called on its own."
-  (setq tabulated-list-format [("Filename" 60 t)])
-  (setq tabulated-list-sort-key (cons "Filename" nil))
+  (setq tabulated-list-format [("Title" 78 t) ("ID" 15 t)])
+  (setq tabulated-list-sort-key (cons "ID" nil))
   (add-hook 'tabulated-list-revert-hook 'mvtn--tag-file-list-refresh nil t))
 
 (define-key mvtn-tag-file-list-mode-map (kbd "o") 'mvtn-tag-file-list-open)
@@ -64,13 +64,15 @@ created."
         (all (string-match-p "> ALL" (buffer-name))))
     (setq tabulated-list-entries nil)
     (dolist (f (mvtn-list-files-with-tags tags all))
-      (let ((fname `(,f
-                     face link
-                     help-echo ,(format-message "Open note `%s'" f)
-                     follow-link t
-                     filename ,f
-                     action mvtn--tag-file-list-action)))
-        (push (list f (vector fname))
+      (let* ((id-pos (string-match-p mvtn--id-regexp f))
+             (fname `(,(substring f (+ id-pos 16))
+                      face link
+                      help-echo ,(format-message "Open note `%s'" f)
+                      follow-link t
+                      filename ,f
+                      action mvtn--tag-file-list-action))
+             (id `(,(substring f id-pos (+ id-pos 15)) face default)))
+        (push (list f (vector fname id))
               tabulated-list-entries)))
     (tabulated-list-init-header)))
 
@@ -86,8 +88,10 @@ produced by `mvtn-tag-file-list'. If KEEP-FOCUS is non-nil, the
 focus is kept in the `mvtn-tag-file-list-mode' buffer instead of
 the opened file."
   (interactive "P")
-  (let ((filename (concat mvtn-note-directory "/"
-                          (car (elt (tabulated-list-get-entry (point)) 0))))
+  (let ((filename (concat
+                   mvtn-note-directory "/"
+                   (plist-get (cdr (elt (tabulated-list-get-entry (point)) 0))
+                              'filename)))
         (prev-buffer (current-buffer)))
     (find-file-other-window filename)
     (if keep-focus (select-window (get-buffer-window prev-buffer)))))
