@@ -145,6 +145,8 @@ applicable action.)"
   "A regexp matching valid mvtn links.")
 (defvar mvtn--notename-regexp "^[[:digit:]]\\{8\\}-[[:digit:]]\\{6\\}.*"
   "A regexp matching valid mvtn note names.")
+(defvar mvtn--id-regexp "[[:digit:]]\\{8\\}-[[:digit:]]\\{6\\}"
+  "A regexp matching a valid mvtn id.")
 
 (defun mvtn-current-timestamp (accuracy)
   "Returns a timestamp for use in generating mvtn filenames. ACCURACY is a
@@ -297,7 +299,7 @@ of a note's name). When FILENAME is given, also extracts the
 filename without filextension and tags"
   (unless (if filename
               (string-match "[[:digit:]]\\{8\\}-[[:digit:]]\\{6\\} [^\\^\\.]*" notename)
-            (string-match "[[:digit:]]\\{8\\}-[[:digit:]]\\{6\\}" notename))
+            (string-match mvtn--id-regexp notename))
     (error (concat "Failed to extract note identity. "
                    "Probably an invalid filename or timestamp: %s")
            notename))
