@@ -145,8 +145,6 @@ applicable action.)"
   "A regexp matching a valid mvtn id.")
 (defvar mvtn--link-regexp (concat "\\^\\^" mvtn--id-regexp ".*\\^\\^")
   "A regexp matching valid mvtn links.")
-(defvar mvtn--notename-regexp (concat "^" mvtn--id-regexp ".*")
-  "A regexp matching valid mvtn note names.")
 
 (defun mvtn-current-timestamp (accuracy)
   "Returns a timestamp for use in generating mvtn filenames. ACCURACY is a
@@ -411,7 +409,7 @@ buffer). If ALL is non-nil (can be set through a universal
 argument), then `mvtn-search-years' is ignored."
   (interactive "P")
   (when (not file) (setq file (file-name-nondirectory buffer-file-name)))
-  (when (not (string-match-p mvtn--notename-regexp file))
+  (when (not (string-match-p (concat "^" mvtn--id-regexp ".*") file))
     (error "Invalid mvtn filename. Cancelled backlink search."))
   (let ((timestamp (mvtn--extract-note-identity file)))
     (mvtn-search-full-text (concat "\\^\\^" timestamp) all)))
@@ -438,7 +436,7 @@ argument), then `mvtn-search-years' is ignored."
   (interactive)
   (let* ((answer (completing-read "Insert link to: " (mvtn-list-files)))
          (link (mvtn--extract-note-identity answer t)))
-    (when (not (string-match-p mvtn--notename-regexp link))
+    (when (not (string-match-p (concat "^" mvtn--id-regexp ".*") link))
       (error "Invalid mvtn filename: %s" answer))
     (insert (format "^^%s^^" link))))
 
