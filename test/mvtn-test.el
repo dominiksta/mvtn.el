@@ -107,7 +107,13 @@ files. Mocking seemed like too much of a hassle here.")
                         "20200101-010101 test name"))
   (should (string-equal (mvtn--extract-note-identity
                          "^^20200101-010101 test name^^  " t)
-                        "20200101-010101 test name")))
+                        "20200101-010101 test name"))
+  (should (string-equal (mvtn--extract-note-identity
+                         "2020/20200101-010101 ..with.dot.in.name -- tag1 tag2.org")
+                        "20200101-010101"))
+  (should (string-equal (mvtn--extract-note-identity
+                         "2020/20200101-010101 ..with.dot.in.name -- tag1 tag2.org" t)
+                        "20200101-010101 ..with.dot.in.name")))
 
 
 (ert-deftest mvtn-list-files-native ()

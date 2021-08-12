@@ -141,12 +141,12 @@ through this list top to bottom and only executes the first
 applicable action.)"
   :type '(alist :value-type (group symbol)) :group 'mvtn)
 
-(defvar mvtn--link-regexp "\\^\\^[[:digit:]]\\{8\\}-[[:digit:]]\\{6\\}.*\\^\\^"
-  "A regexp matching valid mvtn links.")
-(defvar mvtn--notename-regexp "^[[:digit:]]\\{8\\}-[[:digit:]]\\{6\\}.*"
-  "A regexp matching valid mvtn note names.")
 (defvar mvtn--id-regexp "[[:digit:]]\\{8\\}-[[:digit:]]\\{6\\}"
   "A regexp matching a valid mvtn id.")
+(defvar mvtn--link-regexp (concat "\\^\\^" mvtn--id-regexp ".*\\^\\^")
+  "A regexp matching valid mvtn links.")
+(defvar mvtn--notename-regexp (concat "^" mvtn--id-regexp ".*")
+  "A regexp matching valid mvtn note names.")
 
 (defun mvtn-current-timestamp (accuracy)
   "Returns a timestamp for use in generating mvtn filenames. ACCURACY is a
@@ -297,14 +297,18 @@ the buffer to the resulting file. RETURN that buffer."
   "Extracts the timestamp from NOTENAME (any string representation
 of a note's name). When FILENAME is given, also extracts the
 filename without filextension and tags"
-  (unless (if filename
-              (string-match "[[:digit:]]\\{8\\}-[[:digit:]]\\{6\\} [^\\^\\.]*" notename)
-            (string-match mvtn--id-regexp notename))
+  (unless (string-match (if filename (concat mvtn--id-regexp ".*") mvtn--id-regexp)
+                        notename)
     (error (concat "Failed to extract note identity. "
                    "Probably an invalid filename or timestamp: %s")
            notename))
   (let* ((match (match-string-no-properties 0 notename))
-         (sep (if (string-match-p "--" match) "--" "\\.")))
+         (sep (cond
+               ((string-match-p "--" match) "--") ; tags
+               ((string-match-p "\\.[[:alpha:]]+\\^\\^" match) "\\.[[:alpha:]]+\\^\\^")
+               ((string-match-p "\\^\\^" match) "\\^\\^") ; links
+               ((string-match-p "\\.[[:alpha:]]+$" match) "\\.[[:alpha:]]+$") ; extension
+               )))
     (string-trim (car (split-string match sep)))))
 
 
