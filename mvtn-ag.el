@@ -10,7 +10,7 @@
 
 (require 'mvtn)
 
-(declare-function ag-regexp "ext:ag")
+(declare-function ag/search "ext:ag")
 (defvar ag-executable)
 (defvar ag-arguments)
 
@@ -22,7 +22,7 @@ DIRS. Fall back to `mvtn-search-full-text--grep' when
 `ag-executable' is not found."
   (require 'ag)
   (if (not (executable-find ag-executable))
-      (mvtn-search-full-text-grep string exclude-dirs)
+      (mvtn-search-full-text-grep string dirs)
     (ag/search string default-directory :regexp t :files dirs)))
 
 

@@ -11,7 +11,7 @@
 (require 'mvtn)
 (require 'cl-macs)
 
-(declare-function rg "ext:rg")
+(declare-function rg-run "ext:rg")
 (defvar rg-executable)
 (defvar rg-command-line-flags)
 (defvar rg-build-command)

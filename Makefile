@@ -62,11 +62,11 @@ run: compile
 	-l mvtn-test.el \
 	-l mvtn-test-file-helpers.el \
 	-l mvtn-test-tag-addons.el \
-	--eval '(setq mvtn-note-directory mvtn-test-note-dir)' \
+	--eval '(setq mvtn-note-directories mvtn-test-note-dirs)' \
 	--eval '(mvtn-test-with-testfiles t)' \
 	--eval '(find-file "mvtn-test.el")' \
 	--eval '(split-window)' \
-	--eval '(dired mvtn-note-directory)'
+	--eval '(dired mvtn-test-note-dir)'
 
 # ----------------------------------------------------------------------
 # packaging

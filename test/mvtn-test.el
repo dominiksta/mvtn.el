@@ -15,6 +15,17 @@
   "A folder to create/rename/delete some actual note
 files. Mocking seemed like too much of a hassle here.")
 
+(defvar mvtn-test-note-dirs
+  (list (list :dir (expand-file-name "test-notes/private") :name "prv" :structure
+              '((:dir "zettelkasten" :datetree t)
+                (:dir "devlog" :datetree t)
+                (:dir "static" :datetree nil)))
+        (list :dir (expand-file-name "test-notes/work") :name "wrk" :structure
+              '((:dir "meetings" :datetree t)
+                (:dir "static" :datetree nil))))
+  "A folder to create/rename/delete some actual note
+files. Mocking seemed like too much of a hassle here.")
+
 
 (ert-deftest mvtn-test-link-regexp ()
   "Test `mvtn--link-regexp'"
@@ -49,35 +60,20 @@ files. Mocking seemed like too much of a hassle here.")
                         "mytimestamp mytitle mydate")))
 
 
-(ert-deftest mvtn-test-get-create-current-note-directory ()
-  "Test `mvtn-get-create-current-year-directory'"
-  (when (file-exists-p mvtn-test-note-dir)
-    (delete-directory mvtn-test-note-dir t))
-  (let ((mvtn-note-directory mvtn-test-note-dir))
-    (should (not (file-exists-p mvtn-note-directory)))
-    (should (string-equal (mvtn-get-create-current-year-directory)
-                          (format "%s/%s" mvtn-note-directory
-                                  (format-time-string "%Y"))))
-    (should (file-exists-p mvtn-note-directory))
-    (should (string-equal (mvtn-get-create-current-year-directory)
-                          (format "%s/%s" mvtn-note-directory
-                                  (format-time-string "%Y"))))
-    (should (file-exists-p mvtn-note-directory))))
-
-
 (ert-deftest mvtn-test-create-new-file ()
   "Test `mvtn-create-new-file'"
-  (when (file-exists-p mvtn-test-note-dir)
-    (delete-directory mvtn-test-note-dir t))
-  (let ((mvtn-note-directory mvtn-test-note-dir)
-        (mvtn-default-file-extension "test"))
-    (mvtn-create-new-file "My Note Title" "tag1 tag2")
-    (should (mvtn-test-file-exists-disregarding-timestamp-p
-             "My Note Title -- tag1 tag2.test"
-             (mvtn-get-create-current-year-directory)))
-    (should (not (mvtn-test-file-exists-disregarding-timestamp-p
-                  "My Note Title -- tag1 tag2.org"
-                  (mvtn-get-create-current-year-directory))))))
+  (mvtn-test-with-testfiles
+   nil
+   (let ((mvtn-default-file-extension "test")
+         (yeardir (concat (mvtn-expand-note-name "prv/zettelkasten") "/"
+                          (format-time-string "%Y"))))
+     (mvtn-create-new-file "prv/zettelkasten" "My Note Title" "tag1 tag2")
+     (should (mvtn-test-file-exists-disregarding-timestamp-p
+              "My Note Title -- tag1 tag2.test"
+              yeardir))
+     (should (not (mvtn-test-file-exists-disregarding-timestamp-p
+                   "My Note Title -- tag1 tag2.org"
+                   yeardir))))))
 
 (ert-deftest mvtn--extract-note-identity ()
   "Test `mvtn--extract-note-identity'"
@@ -122,37 +118,37 @@ files. Mocking seemed like too much of a hassle here.")
     (should (string-equal
              (mapconcat 'identity
                         (mvtn-test-with-testfiles nil (mvtn-list-files)) "\n")
-             "2021/20210110-134524 test3 test3.org
-2021/20210110-134523 test2 test2.txt
-2021/20210110-134522 test1 -- i have tags.md
-2020/20201212-134544 test3 test3.org
-2020/20201212-134542 test2 test2 -- tags tags tags.txt
-2020/20201212-134541 test1.txt
-2020/20201212-134541 test1 (fake conflicted copy).txt
-static/work/20140210-134522 a note for work 2.org
-static/work/20140210-134522 a note for work 1.md
-static/20130210-134522 an old statically displayed note.org
-static/20130210-134522 an old statically displayed note.md"))
+             "prv/zettelkasten/2021/20210110-134524 test3 test3.org
+prv/zettelkasten/2021/20210110-134523 test2 test2.txt
+prv/zettelkasten/2021/20210110-134522 test1 -- i have tags.md
+prv/zettelkasten/2020/20201212-134544 test3 test3.org
+prv/zettelkasten/2020/20201212-134542 test2 test2 -- tags tags tags.txt
+prv/zettelkasten/2020/20201212-134541 test1.txt
+prv/zettelkasten/2020/20201212-134541 test1 (fake conflicted copy).txt
+wrk/meetings/2019/20190210-134522 a note for work 2.org
+wrk/meetings/2019/20190210-134522 a note for work 1.md
+prv/static/20130210-134522 an old statically displayed note.org
+prv/static/20130210-134522 an old statically displayed note.md"))
     (should (string-equal
              (mapconcat 'identity
                         (mvtn-test-with-testfiles nil (mvtn-list-files t)) "\n")
-             "2021/20210110-134524 test3 test3.org
-2021/20210110-134523 test2 test2.txt
-2021/20210110-134522 test1 -- i have tags.md
-2020/20201212-134544 test3 test3.org
-2020/20201212-134542 test2 test2 -- tags tags tags.txt
-2020/20201212-134541 test1.txt
-2020/20201212-134541 test1 (fake conflicted copy).txt
-2018/20181212-134544 test3 test3.org
-2018/20181212-134542 test2 test2 -- tags tags tags.txt
-2018/20181212-134541 test1.txt
-1999/19990110-134523 test3 test3.org
-1999/19990110-134522 test2 test2.txt
-1999/19990110-134522 test1 -- tags test.txt
-static/work/20140210-134522 a note for work 2.org
-static/work/20140210-134522 a note for work 1.md
-static/20130210-134522 an old statically displayed note.org
-static/20130210-134522 an old statically displayed note.md"))))
+             "prv/zettelkasten/2021/20210110-134524 test3 test3.org
+prv/zettelkasten/2021/20210110-134523 test2 test2.txt
+prv/zettelkasten/2021/20210110-134522 test1 -- i have tags.md
+prv/zettelkasten/2020/20201212-134544 test3 test3.org
+prv/zettelkasten/2020/20201212-134542 test2 test2 -- tags tags tags.txt
+prv/zettelkasten/2020/20201212-134541 test1.txt
+prv/zettelkasten/2020/20201212-134541 test1 (fake conflicted copy).txt
+wrk/meetings/2019/20190210-134522 a note for work 2.org
+wrk/meetings/2019/20190210-134522 a note for work 1.md
+prv/zettelkasten/2018/20181212-134544 test3 test3.org
+prv/zettelkasten/2018/20181212-134542 test2 test2 -- tags tags tags.txt
+prv/zettelkasten/2018/20181212-134541 test1.txt
+prv/zettelkasten/1999/19990110-134523 test3 test3.org
+prv/zettelkasten/1999/19990110-134522 test2 test2.txt
+prv/zettelkasten/1999/19990110-134522 test1 -- tags test.txt
+prv/static/20130210-134522 an old statically displayed note.org
+prv/static/20130210-134522 an old statically displayed note.md"))))
 
 (ert-deftest mvtn-list-files-find ()
   "Test `mvtn-list-files': GNU find"
@@ -204,7 +200,7 @@ static/20130210-134522 an old statically displayed note.md")))))
    (should (mvtn-link-targets "^^19990110-134522^^"))
    (should (eq 2 (length (mvtn-link-targets "^^20201212-134541 test1.txt^^"))))
    (should (mvtn-link-targets "^^20130210-134522 an old statically displayed note^^"))
-   (should (eq 2 (length (mvtn-link-targets "^^20140210-134522 a note for work^^"))))
+   (should (eq 2 (length (mvtn-link-targets "^^20190210-134522 a note for work^^"))))
    (should-error (mvtn-link-targets "^^20210110-1345^^"))
    (should (not (mvtn-link-targets
                  "^^20130210-123456 a note in an excluded folder^^")))))
