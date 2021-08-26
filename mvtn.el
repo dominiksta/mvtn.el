@@ -435,7 +435,7 @@ prompts for disambiguation."
                        ((= (length matches) 1)
                         (car matches))
                        (t (error "No matches found for link")))))
-    (find-file (format "%s/%s" mvtn-note-directory target))
+    (find-file (mvtn-expand-note-name target))
     (dolist (el mvtn-link-actions)
       (when (string-match-p (car el) link)
         (funcall (cadr el)
