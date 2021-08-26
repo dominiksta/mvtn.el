@@ -35,31 +35,74 @@
 (require 'seq)
 (require 'grep)
 
-(defcustom mvtn-note-directory (expand-file-name "~/mvtn")
-  "The base directory for all your mvtn notes."
+(defcustom mvtn-note-directories
+  '((:dir "~/mvtn/private" :name "prv" :structure
+          ((:dir "fleeting" :datetree t)
+           (:dir "zettelkasten" :datetree t)
+           (:dir "devlog" :datetree t)
+           (:dir "static" :datetree nil)))
+    (:dir "~/mvtn/work" :name "wrk" :structure
+          ((:dir "fleeting" :datetree t)
+           (:dir "meetings" :datetree t)
+           (:dir "devlog" :datetree t)
+           (:dir "static" :datetree nil))))
+  "The directory structure for all your mvtn notes. Structurally,
+this is a list of plists, where each element contains the
+following keys:
+
+| Key        | Description                                                |
+|------------+------------------------------------------------------------|
+| :dir       | A directory on the file system. This will not contain      |
+|            | any notes itself; rather it is a base directory            |
+|            | for the subdirectories specified in the :structure         |
+|            | key. It is intended to be used to separate between         |
+|            | categories of notes that for some reason need to be in     |
+|            | different places on the file system. One might for example |
+|            | want to store notes for their professional work on a       |
+|            | separate, encrypted drive. It is possible to specify drive |
+|            | letters on windows (e.g. 'd:/mvtn/').                      |
+| :name      | An abbreviated name of the directory. This helps to        |
+|            | improve the readabilty of a lot of listings and            |
+|            | searches. Can be any string of characters.                 |
+| :structure | As already mentioned, this key describes subdirectories    |
+|            | of :dir.                                                   |
+
+Each element of list specified as the :structure key is itself
+again a list of plists. The required keys are listed in the table
+below.
+
+| Key       | Description                                                 |
+|-----------+-------------------------------------------------------------|
+| :dir      | A directory on the file system. It is relative to the       |
+|           | parent elements :dir. Intended for further                  |
+|           | categorisation beyond the parent elements :dir key.         |
+|           | One might for example want to seperate a 'zettelkasten'     |
+|           | aka 'slip-box' from a 'devlog' or meeting notes.            |
+| :datetree | When this key is set to nil, notes will be created directly |
+|           | in the directory :dir. For long-term scalability, it is     |
+|           | however strongly recommended to set this to t in most       |
+|           | circumstances. When set to t, notes will be created in      |
+|           | subdirectories corresponding to the year the note is taken  |
+|           | in. When performing full-text searches or backlink          |
+|           | searches, mvtn can then omit notes older then               |
+|           | `mvtn-search-years', ensuring long-term scalability.        |
+|           | Setting :datetree to t should only be used for notes that   |
+|           | one wants to always be included in every search,            |
+|           | regardless of their age.                                    |
+
+Example:
+((:dir \"~/mvtn/private\" :name \"prv\" :structure
+       ((:dir \"fleeting\" :datetree t)
+        (:dir \"zettelkasten\" :datetree t)
+        (:dir \"devlog\" :datetree t)
+        (:dir \"static\" :datetree nil)))
+(:dir \"~/mvtn/work\" :name \"wrk\" :structure
+      ((:dir \"fleeting\" :datetree t)
+        (:dir \"meetings\" :datetree t)
+        (:dir \"devlog\" :datetree t)
+        (:dir \"static\" :datetree nil))))
+"
   :type 'string :group 'mvtn)
-
-;; TODO: add documentation
-(setq mvtn-note-directories
-      '((:dir "~/sync/documents/notes/mvtn" :name "default" :main t :structure
-              ((:dir "fleeting" :datetree t)
-               (:dir "zettelkasten" :datetree t)
-               (:dir "devlog" :datetree t)
-               (:dir "static" :datetree nil)))
-        (:dir "d:/mvtn-test" :name "work" :main t :structure
-              ((:dir "fleeting" :datetree t)
-               (:dir "meetings" :datetree t)
-               (:dir "static" :datetree nil)))))
-
-(defcustom mvtn-static-note-directories
-  '("static")
-  "A list containing all the directory names inside the
-`mvtn-note-directory' that contain notes which are year
-independent. These notes are always displayed when calling
-`mvtn-open-note', `mvtn-insert-link' and everything else affected
-by `mvtn-list-files-function' - independently from the value of
-`mvtn-search-years'."
-  :type '(list :value-type string) :group 'mvtn)
 
 (defcustom mvtn-excluded-directories
   '(".git" ".svn" "ltximg")
@@ -130,9 +173,9 @@ strings) to exclude from the search. By default,
            (executable-find find-program))
       'mvtn-list-files-function-find
     'mvtn-list-files-function-native)
-  "Function to traverse all directories (year dependent &
-`mvtn-static-note-directories') in `mvtn-note-directory'
-excluding directories provided in `mvtn-excluded-directories'.
+  "Function to traverse all directories in
+`mvtn-note-directories' excluding directories provided in
+`mvtn-excluded-directories'.
 
 Takes one optional argument SEARCH which allows to only list
 files matching this specific string
@@ -514,7 +557,7 @@ are returned as relative paths."
 
 ;;;###autoload
 (defun mvtn-search-full-text (string &optional all)
-  "Search for STRING in `mvtn-note-directory', using
+  "Search for STRING in `mvtn-note-directories', using
 `mvtn-search-function', excluding directories according to
 `mvtn-search-years'."
   (interactive "MSearch: \nP")
