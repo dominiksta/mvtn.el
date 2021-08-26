@@ -615,11 +615,18 @@ used to encrypt the file with gpg."
   nil " mvtn" mvtn-minor-mode-map)
 
 (defun maybe-enable-mvtn-minor-mode ()
-  "Enable `mvtn-minor-mode' when file is in `mvtn-note-directory'"
-    (condition-case nil
-        (when (string-match-p (expand-file-name mvtn-note-directory)
-                              (buffer-file-name (current-buffer)))
-          (mvtn-minor-mode 1)) (error nil)))
+  "Enable `mvtn-minor-mode' when file is in `mvtn-note-directories'"
+  (condition-case nil
+      (let* ((note-dirs (mapcar 'expand-file-name
+                                (mapcar 'mvtn-expand-note-name
+                                        (mvtn-short-note-dir-list))))
+             (matches (mapcar (lambda (el) (string-match-p
+                                       el (buffer-file-name
+                                           (current-buffer))))
+                              note-dirs)))
+        (when (> (length (remq nil matches)) 0)
+               (mvtn-minor-mode 1)))
+     (error nil)))
 
 (add-hook 'text-mode-hook 'maybe-enable-mvtn-minor-mode)
 
