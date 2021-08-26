@@ -394,17 +394,33 @@ or syncthing.
 
 Example:
 (mvtn-link-targets \"^^20210110-000548 ABCDEFGBLABLA.asd^^\")
--> \"/path/to/notes/2021/20210110-000548 Branching in Subversion.org\""
+-> \"prv/devlog/2021/20210110-000548 Branching in Subversion.org\""
   (when (not (string-match-p mvtn--link-regexp link)) (error "Invalid mvtn link"))
   (let* ((timestamp (mvtn--extract-note-identity link))
-         (year-dir (mvtn-timestamp-field timestamp 'year))
+         (year (mvtn-timestamp-field timestamp 'year))
          (matches '()))
-    (dolist (current-dir `(,year-dir ,@mvtn-static-note-directories))
-      (let ((default-directory (format "%s/%s" mvtn-note-directory current-dir)))
-        (setq matches (append matches
-                              (mapcar (lambda (filename)
-                                        (format "%s/%s" current-dir filename))
-                                      (mvtn--directory-files timestamp))))))
+    ;; datetrees first
+    (dolist (root-el mvtn-note-directories)
+      (dolist (structure-el (plist-get root-el :structure))
+        (let ((root-dir (plist-get root-el :dir))
+              (root-name (plist-get root-el :name))
+              (structure-dir (plist-get structure-el :dir)))
+          (if (plist-get structure-el :datetree)
+              (let ((dir (format "%s/%s/%s" root-dir structure-dir year))
+                    (prefix (format "%s/%s/%s" root-name structure-dir year)))
+                (setq matches (append matches (mvtn--directory-files
+                                               dir prefix timestamp))))))))
+    ;; non-datetrees second
+    (dolist (root-el mvtn-note-directories)
+      (dolist (structure-el (plist-get root-el :structure))
+        (let ((root-dir (plist-get root-el :dir))
+              (root-name (plist-get root-el :name))
+              (structure-dir (plist-get structure-el :dir)))
+          (if (not (plist-get structure-el :datetree))
+              (let ((dir (format "%s/%s" root-dir structure-dir))
+                    (prefix (format "%s/%s" root-name structure-dir)))
+                (setq matches (append matches (mvtn--directory-files
+                                               dir prefix timestamp))))))))
     matches))
 
 
