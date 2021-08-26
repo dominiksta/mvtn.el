@@ -539,10 +539,16 @@ argument), then `mvtn-search-years' is ignored."
 
 ;;;###autoload
 (defun mvtn-jump-current-year-directory ()
-  "Jump to {`mvtn-note-directory'}/{current-year}. Uses `dired'
-or whatever `find-file' is configured to do for directories."
+  "Jump to a directory in `mvtn-note-directories' in
+`dired'. Opens the directory for the current year if a directory
+configured as a datetree is selected."
   (interactive)
-  (find-file (mvtn-get-create-current-year-directory)))
+  (let ((choice (completing-read "Directory: " (mvtn-short-note-dir-list))))
+    (when (member choice (mvtn-short-note-dir-list t))
+      (setq choice (concat choice "/" (format-time-string "%Y"))))
+    (setq choice (mvtn-expand-note-name choice))
+    (if (not (file-exists-p choice)) (mkdir choice t))
+    (dired choice)))
 
 
 ;;;###autoload
