@@ -158,6 +158,24 @@ applicable action.)"
 (defvar mvtn--link-regexp (concat "\\^\\^" mvtn--id-regexp ".*\\^\\^")
   "A regexp matching valid mvtn links.")
 
+(defun mvtn-note-dir-for-name (name)
+  "Returns the :path property of a note directory in
+`mvtn-note-directories' associated with the given NAME"
+  (let ((candidates (seq-filter (lambda (el) (string-equal (plist-get el :name) name))
+                                mvtn-note-directories)))
+    (cond
+     ((not candidates) (error "No note directory found for name: %s" name))
+     ((> (length candidates) 1) (error "Conflicting note directory names: %s" name))
+     (t (plist-get (car candidates) :dir)))))
+
+(defun mvtn-expand-note-name (notename)
+  "Translates a path to a note shortened by the :name property of
+the note directory in `mvtn-note-directories' to the full path on
+the disk."
+  (let ((split (split-string notename "/")))
+    (concat (mvtn-note-dir-for-name (car split)) "/"
+            (mapconcat 'identity (cdr split) "/"))))
+
 (defun mvtn-current-timestamp (accuracy)
   "Returns a timestamp for use in generating mvtn filenames. ACCURACY is a
 symbol to define the format:
@@ -490,9 +508,8 @@ used to encrypt the file with gpg."
 (defun mvtn-open-note (&optional all)
   "Opens a note from `mvtn-note-directory'. Supports completion."
   (interactive "P")
-  (let* ((default-directory mvtn-note-directory)
-         (answer (completing-read "Open note: " (mvtn-list-files all))))
-    (find-file answer)))
+  (let* ((answer (completing-read "Open note: " (mvtn-list-files all))))
+    (find-file (mvtn-expand-note-name answer))))
 
 (defvar mvtn-minor-mode-map (make-sparse-keymap))
 (define-key mvtn-minor-mode-map (kbd "C-c C-. o") 'mvtn-follow-link-at-point)
