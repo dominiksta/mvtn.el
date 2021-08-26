@@ -280,11 +280,13 @@ since find's sorting relies on creation time"
 (defun mvtn-list-files (&optional all)
   "Return a list of all files in `mvtn-note-directory'
 recursively. Limit to `mvtn-search-years' unless ALL is non-nil."
-  (let* ((filelist '())
+  (let* ((files-datetree '())
+         (files-other '())
          (current-year (string-to-number (format-time-string "%Y")))
          (yearlist (if all
                        (directory-files mvtn-note-directory nil "^[[:digit:]]\\{4\\}$")
                      (number-sequence (1+ (- current-year mvtn-search-years)) current-year))))
+    ;; datetree first
     (dolist (root-el mvtn-note-directories)
       (dolist (structure-el (plist-get root-el :structure))
         (let* ((datetree (plist-get structure-el :datetree))
@@ -293,14 +295,38 @@ recursively. Limit to `mvtn-search-years' unless ALL is non-nil."
                (root-dir (plist-get root-el :dir)))
           (if datetree
               (dolist (year yearlist)
-                (let ((dir (format "%s/%s/%s" root-dir structure-dir year))
-                      (prefix (format "%s/%s/%s" root-name structure-dir year)))
-                  (print dir)
-                  (setq filelist (append filelist (mvtn--directory-files dir prefix)))))
-            (let ((dir (format "%s/%s" root-dir structure-dir))
-                  (prefix (format "%s/%s" root-name structure-dir)))
-              (setq filelist (append filelist (mvtn--directory-files dir prefix))))))))
-    (if (eq mvtn-list-files-order 'asc) filelist (reverse filelist))))
+                (let ((dir (format "%s/%s/%s/" root-dir structure-dir year))
+                      (prefix (format "%s/%s/%s/" root-name structure-dir year)))
+                  (if (file-exists-p dir)
+                      (setq files-datetree (append (mapcar (lambda (el) (cons el prefix))
+                                                     (mvtn--directory-files dir))
+                                             files-datetree)))))))))
+    (setq files-datetree
+          (mapcar (lambda (el) (concat (cdr el) (car el)))
+                  (sort files-datetree (lambda (a b) (string< (car a) (car b))))))
+    ;; non-datetree second
+    (dolist (root-el mvtn-note-directories)
+      (dolist (structure-el (plist-get root-el :structure))
+        (let* ((datetree (plist-get structure-el :datetree))
+               (structure-dir (plist-get structure-el :dir))
+               (root-name (plist-get root-el :name))
+               (root-dir (plist-get root-el :dir)))
+          (if (not datetree)
+            (let ((dir (format "%s/%s/" root-dir structure-dir))
+                  (prefix (format "%s/%s/" root-name structure-dir)))
+              (if (file-exists-p dir)
+                  (setq files-other (append (mapcar (lambda (el) (cons el prefix))
+                                                 (mvtn--directory-files dir))
+                                         files-other))))))))
+    (setq files-other
+          (mapcar (lambda (el) (concat (cdr el) (car el)))
+                  (sort files-other
+                        (lambda (a b) (string< (mvtn--extract-note-identity (car a))
+                                          (mvtn--extract-note-identity (car b)))))))
+    (when (eq mvtn-list-files-order 'desc)
+      (setq files-datetree (reverse files-datetree))
+      (setq files-other (reverse files-other)))
+    (setq filelist (append files-datetree files-other))))
 
 (defun mvtn-generate-file-name (timestamp title extension tags &optional encrypt)
   "Get an mvtn file-name following this template:
