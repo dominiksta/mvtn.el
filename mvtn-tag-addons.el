@@ -80,7 +80,7 @@ created."
   "The action taken when a note in an `mvtn-tag-file-list' buffer
 is clicked."
   (find-file
-   (concat mvtn-note-directory "/" (button-get button 'filename))))
+   (concat (mvtn-expand-note-name (button-get button 'filename)))))
 
 (defun mvtn-tag-file-list-open (&optional keep-focus)
   "Open up the file under point in another window in a buffer
@@ -88,8 +88,7 @@ produced by `mvtn-tag-file-list'. If KEEP-FOCUS is non-nil, the
 focus is kept in the `mvtn-tag-file-list-mode' buffer instead of
 the opened file."
   (interactive "P")
-  (let ((filename (concat
-                   mvtn-note-directory "/"
+  (let ((filename (mvtn-expand-note-name
                    (plist-get (cdr (elt (tabulated-list-get-entry (point)) 0))
                               'filename)))
         (prev-buffer (current-buffer)))
