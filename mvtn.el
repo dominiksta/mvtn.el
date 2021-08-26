@@ -463,9 +463,8 @@ available. See `mvtn-link-actions'."
     (pulse-momentary-highlight-region (match-beginning 0) (match-end 0))))
 
 
-(defun mvtn-search-full-text-grep (string exclude-dirs)
-  "Searches STRING using `grep' in `default-directory', excluding
-directories specified as a list of strings in DIRS."
+(defun mvtn-search-full-text-grep (string dirs)
+  "Searches STRING using `grep' in DIRS."
   ;; `grep-use-null-device' is only useful when -H is not an option and only one
   ;; file is searched. Although -H is apparently not posix-compliant, it is
   ;; included in both BSD and GNU grep. I therefore hereby declare that this
@@ -473,10 +472,44 @@ directories specified as a list of strings in DIRS."
   ;; `grep-use-null-device' remains enabled, it causes problems when using
   ;; compatibility layers like cygwin.
   (let ((grep-use-null-device nil))
-    (grep (concat (executable-find "grep") " -nH --null -r -I "
-                  (mapconcat (lambda (dir) (format "--exclude-dir=\"%s\"" dir))
-                             exclude-dirs " ")
-                  " " (shell-quote-argument string)))))
+    (grep (concat (shell-quote-argument (executable-find "grep"))
+                  " "
+                  (shell-quote-argument string)
+                  " -nH --null -r -I "
+                  (mapconcat 'identity dirs " ")))))
+
+
+(defun mvtn--search-dirs (&optional all)
+  "Return a list of all directories in `mvtn-note-directories'
+that should be searched in `mvtn-search-full-text'. Paths for the
+subdirectories of the first element in `mvtn-note-directories'
+are returned as relative paths."
+  (let ((result '())
+        (current-year (string-to-number (format-time-string "%Y")))
+        (mvtn-search-years (if all 1000 mvtn-search-years)))
+    (dolist (root-el mvtn-note-directories)
+      (dolist (currstruct (plist-get root-el :structure))
+        (if (plist-get currstruct :datetree)
+            (let* ((currdir (plist-get currstruct :dir))
+                   (yeardirs (directory-files
+                              (concat (plist-get root-el :dir) "/"
+                                      currdir)
+                              nil "^[[:digit:]]\\{4\\}$"))
+                   (yeardirs-filtered
+                    (seq-filter (lambda (dir) (> dir (- current-year mvtn-search-years)))
+                                (mapcar 'string-to-number yeardirs)))
+                   (prefix (if (not (eq root-el (car mvtn-note-directories)))
+                               (concat (plist-get root-el :dir) "/") ""))
+                   (searchdirs
+                    (mapcar (lambda (el) (concat prefix currdir "/" (number-to-string el)))
+                            yeardirs-filtered)))
+              (setq result (append result searchdirs)))
+          (let ((prefix (if (not (eq root-el (car mvtn-note-directories)))
+                            (concat (plist-get root-el :dir) "/") "")))
+            (setq result
+                  (append result (list (concat
+                                        prefix (plist-get currstruct :dir)))))))))
+    (seq-filter 'file-exists-p result)))
 
 
 ;;;###autoload
@@ -485,16 +518,11 @@ directories specified as a list of strings in DIRS."
 `mvtn-search-function', excluding directories according to
 `mvtn-search-years'."
   (interactive "MSearch: \nP")
-  (let* ((default-directory mvtn-note-directory)
-         (current-year (string-to-number (format-time-string "%Y")))
-         (exclude-dirs
-          (seq-filter (lambda (dir) (<= dir (- current-year mvtn-search-years)))
-                      (mapcar 'string-to-number
-                              (directory-files mvtn-note-directory nil
-                                               "^[[:digit:]]\\{4\\}$")))))
+  (let* ((default-directory (plist-get (car mvtn-note-directories) :dir))
+         (current-year (string-to-number (format-time-string "%Y"))))
     (if all
-        (funcall mvtn-search-function string nil)
-      (funcall mvtn-search-function string exclude-dirs))))
+        (funcall mvtn-search-function string (mvtn--search-dirs t))
+      (funcall mvtn-search-function string (mvtn--search-dirs)))))
 
 
 ;;;###autoload
