@@ -39,6 +39,18 @@
   "The base directory for all your mvtn notes."
   :type 'string :group 'mvtn)
 
+;; TODO: add documentation
+(setq mvtn-note-directories
+      '((:dir "~/sync/documents/notes/mvtn" :name "default" :main t :structure
+              ((:dir "fleeting" :datetree t)
+               (:dir "zettelkasten" :datetree t)
+               (:dir "devlog" :datetree t)
+               (:dir "static" :datetree nil)))
+        (:dir "d:/mvtn-test" :name "work" :main t :structure
+              ((:dir "fleeting" :datetree t)
+               (:dir "meetings" :datetree t)
+               (:dir "static" :datetree nil)))))
+
 (defcustom mvtn-static-note-directories
   '("static")
   "A list containing all the directory names inside the
@@ -236,12 +248,16 @@ since find's sorting relies on creation time"
    "\n" t))
 
 
-(defun mvtn--directory-files (&optional search)
-  "Checks if `default-directory' exists and calls `mvtn-list-files-function'."
-  (if (file-exists-p default-directory)
-      (funcall mvtn-list-files-function search)
+(defun mvtn--directory-files (dir &optional prefix search)
+  "Checks if DIR exists, calls `mvtn-list-files-function' with
+`default-directory' set to DIR and prefixes all results with PREFIX."
+  (if (file-exists-p dir)
+      (let ((default-directory dir))
+        (if prefix
+            (mapcar (lambda (el) (format "%s/%s" prefix el))
+                    (funcall mvtn-list-files-function search))
+          (funcall mvtn-list-files-function search)))
     nil))
-
 
 (defun mvtn-list-files (&optional all)
   "Return a list of all files in `mvtn-note-directory'
@@ -251,11 +267,21 @@ recursively. Limit to `mvtn-search-years' unless ALL is non-nil."
          (yearlist (if all
                        (directory-files mvtn-note-directory nil "^[[:digit:]]\\{4\\}$")
                      (number-sequence (1+ (- current-year mvtn-search-years)) current-year))))
-    (dolist (current-dir (append mvtn-static-note-directories yearlist))
-      (let ((default-directory (format "%s/%s" mvtn-note-directory current-dir)))
-        (setq filelist (append filelist (mapcar (lambda (filename)
-                                                  (format "%s/%s" current-dir filename))
-                                                (mvtn--directory-files))))))
+    (dolist (root-el mvtn-note-directories)
+      (dolist (structure-el (plist-get root-el :structure))
+        (let* ((datetree (plist-get structure-el :datetree))
+               (structure-dir (plist-get structure-el :dir))
+               (root-name (plist-get root-el :name))
+               (root-dir (plist-get root-el :dir)))
+          (if datetree
+              (dolist (year yearlist)
+                (let ((dir (format "%s/%s/%s" root-dir structure-dir year))
+                      (prefix (format "%s/%s/%s" root-name structure-dir year)))
+                  (print dir)
+                  (setq filelist (append filelist (mvtn--directory-files dir prefix)))))
+            (let ((dir (format "%s/%s" root-dir structure-dir))
+                  (prefix (format "%s/%s" root-name structure-dir)))
+              (setq filelist (append filelist (mvtn--directory-files dir prefix))))))))
     (if (eq mvtn-list-files-order 'asc) filelist (reverse filelist))))
 
 (defun mvtn-generate-file-name (timestamp title extension tags &optional encrypt)
