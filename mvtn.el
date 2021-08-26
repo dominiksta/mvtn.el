@@ -159,7 +159,7 @@ applicable action.)"
   "A regexp matching valid mvtn links.")
 
 (defun mvtn-note-dir-for-name (name)
-  "Returns the :path property of a note directory in
+  "Returns the :dir property of a note directory in
 `mvtn-note-directories' associated with the given NAME"
   (let ((candidates (seq-filter (lambda (el) (string-equal (plist-get el :name) name))
                                 mvtn-note-directories)))
@@ -167,6 +167,18 @@ applicable action.)"
      ((not candidates) (error "No note directory found for name: %s" name))
      ((> (length candidates) 1) (error "Conflicting note directory names: %s" name))
      (t (plist-get (car candidates) :dir)))))
+
+(defun mvtn-short-note-dir-list (&optional datetreeonly)
+  "Get all shortened note directory names in `mvtn-note-directories'"
+  (let ((result '()) (currstruct '()))
+    (dolist (root-el mvtn-note-directories)
+      (setq currstruct (plist-get root-el :structure))
+      (when datetreeonly
+        (setq currstruct (seq-filter (lambda (el) (plist-get el :datetree)) currstruct)))
+      (setq result (append result (mapcar (lambda (el) (concat (plist-get root-el :name)
+                                                          "/" (plist-get el :dir)))
+                                          currstruct))))
+    result))
 
 (defun mvtn-expand-note-name (notename)
   "Translates a path to a note shortened by the :name property of
@@ -226,15 +238,6 @@ one of 'year, 'month, 'day, 'hour, 'minute or 'second."
          (substituted-timestamp
           (replace-regexp-in-string "\{timestamp\}" timestamp substituted-date)))
     substituted-timestamp))
-
-
-(defun mvtn-get-create-current-year-directory ()
-  "Returns a directory with the name of the current year in
-`mvtn-note-directory'. If it does not yet exist, it is created."
-  (let ((dir-name (format "%s/%s" mvtn-note-directory (format-time-string "%Y"))))
-    (when (not (file-exists-p dir-name))
-      (mkdir dir-name t))
-    dir-name))
 
 
 (defun mvtn-list-files-function-native (&optional search)
@@ -329,23 +332,33 @@ recursively. Limit to `mvtn-search-years' unless ALL is non-nil."
   "Get an mvtn file-name following this template:
 \"{TIMESTAMP} {TITLE} -- {TAGS}.{EXTENSION}[.gpg]\""
   (substring-no-properties
-   (format "%s/%s %s%s.%s%s" (mvtn-get-create-current-year-directory)
-           timestamp title (if (car (split-string tags)) (concat " -- " tags) "")
+   (format "%s %s%s.%s%s" timestamp title
+           (if (car (split-string tags)) (concat " -- " tags) "")
            extension (if encrypt ".gpg" ""))))
 
-(defun mvtn-touch-new-file (timestamp title extension tags &optional encrypt)
-  "Use `mvtn-generate-file-name' to create a new file.
-RETURN the full name of the newly created file."
-  (let ((file-name (mvtn-generate-file-name timestamp title extension tags encrypt)))
-    (write-region "" nil file-name) file-name))
+(defun mvtn-touch-new-file (dir timestamp title extension tags &optional encrypt)
+  "Use `mvtn-generate-file-name' to create a new file in DIR
+where DIR is one of `mvtn-short-note-dir-list'. If DIR is
+configured as a datetree, the file is created in the directory
+for the current year. RETURN the full name of the newly created
+file."
+  (let* ((file-name (mvtn-generate-file-name timestamp title extension tags encrypt))
+         (full-dir (concat (mvtn-expand-note-name dir)
+                           (if (member dir (mvtn-short-note-dir-list t))
+                               (concat "/" (format-time-string "%Y")) "")))
+         (default-directory full-dir))
+    (if (not (file-exists-p full-dir)) (mkdir full-dir t))
+    (write-region "" nil file-name)
+    (substring-no-properties (concat full-dir "/" file-name))))
 
-(defun mvtn-create-new-file (title tags &optional encrypt no-template)
+(defun mvtn-create-new-file (dir title tags &optional encrypt no-template)
   "Use `mvtn-touch-new-file' to create a new file, insert a
 template according to `mvtn-file-extension-templates' and open
-the buffer to the resulting file. RETURN that buffer."
+the buffer to the resulting file. DIR should be one of
+`mvtn-short-note-dir-list'. RETURN the buffer to the new file."
   (let* ((timestamp (mvtn-current-timestamp 'second))
          (file-name (mvtn-touch-new-file
-                     timestamp title mvtn-default-file-extension tags encrypt))
+                     dir timestamp title mvtn-default-file-extension tags encrypt))
          (template (mvtn-substitute-template
                     (mvtn-template-for-extension mvtn-default-file-extension)
                     title (format-time-string "%Y-%m-%d") timestamp))
@@ -538,14 +551,15 @@ or whatever `find-file' is configured to do for directories."
 the buffer of the new note. If ENCRYPT is non-nil, 'epa.el' is
 used to encrypt the file with gpg."
   (interactive "P")
-  (let ((title (read-from-minibuffer "Title: "))
+  (let ((dir (completing-read "Directory: " (mvtn-short-note-dir-list)))
+        (title (read-from-minibuffer "Title: "))
         (tags (read-from-minibuffer "Tags: ")))
-    (switch-to-buffer (mvtn-create-new-file title tags encrypt))))
+    (switch-to-buffer (mvtn-create-new-file dir title tags encrypt))))
 
 
 ;;;###autoload
 (defun mvtn-open-note (&optional all)
-  "Opens a note from `mvtn-note-directory'. Supports completion."
+  "Opens a note from `mvtn-note-directories'. Supports completion."
   (interactive "P")
   (let* ((answer (completing-read "Open note: " (mvtn-list-files all))))
     (find-file (mvtn-expand-note-name answer))))
