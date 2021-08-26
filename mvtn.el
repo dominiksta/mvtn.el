@@ -278,14 +278,11 @@ since find's sorting relies on creation time"
     nil))
 
 (defun mvtn-list-files (&optional all)
-  "Return a list of all files in `mvtn-note-directory'
+  "Return a list of all files in `mvtn-note-directories'
 recursively. Limit to `mvtn-search-years' unless ALL is non-nil."
   (let* ((files-datetree '())
          (files-other '())
-         (current-year (string-to-number (format-time-string "%Y")))
-         (yearlist (if all
-                       (directory-files mvtn-note-directory nil "^[[:digit:]]\\{4\\}$")
-                     (number-sequence (1+ (- current-year mvtn-search-years)) current-year))))
+         (current-year (string-to-number (format-time-string "%Y"))))
     ;; datetree first
     (dolist (root-el mvtn-note-directories)
       (dolist (structure-el (plist-get root-el :structure))
@@ -293,8 +290,12 @@ recursively. Limit to `mvtn-search-years' unless ALL is non-nil."
                (structure-dir (plist-get structure-el :dir))
                (root-name (plist-get root-el :name))
                (root-dir (plist-get root-el :dir)))
-          (if datetree
-              (dolist (year yearlist)
+          (if (and datetree (file-exists-p (format "%s/%s" root-dir structure-dir)))
+              (dolist (year (if all
+                                (directory-files (format "%s/%s" root-dir structure-dir)
+                                                 nil "^[[:digit:]]\\{4\\}$")
+                              (number-sequence (1+ (- current-year mvtn-search-years))
+                                               current-year)))
                 (let ((dir (format "%s/%s/%s/" root-dir structure-dir year))
                       (prefix (format "%s/%s/%s/" root-name structure-dir year)))
                   (if (file-exists-p dir)
