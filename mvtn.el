@@ -544,13 +544,13 @@ are returned as relative paths."
                     (seq-filter (lambda (dir) (> dir (- current-year mvtn-search-years)))
                                 (mapcar 'string-to-number yeardirs)))
                    (prefix (if (not (eq root-el (car mvtn-note-directories)))
-                               (concat (plist-get root-el :dir) "/") ""))
+                               (concat (expand-file-name (plist-get root-el :dir)) "/") ""))
                    (searchdirs
                     (mapcar (lambda (el) (concat prefix currdir "/" (number-to-string el)))
                             yeardirs-filtered)))
               (setq result (append result searchdirs)))
           (let ((prefix (if (not (eq root-el (car mvtn-note-directories)))
-                            (concat (plist-get root-el :dir) "/") "")))
+                            (concat (expand-file-name (plist-get root-el :dir)) "/") "")))
             (setq result
                   (append result (list (concat
                                         prefix (plist-get currstruct :dir))))))))))
