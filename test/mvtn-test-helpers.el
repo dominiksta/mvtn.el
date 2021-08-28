@@ -2,6 +2,12 @@
 
 (require 'seq)
 
+;; While this might not be applicable for all windows systems, without this the
+;; relevant unit test for `mvtn-list-files-function-find' fails on every windows
+;; system.
+(when (eq system-type 'windows-nt)
+  (setq find-program "\"c:/Program Files/Git/usr/bin/find.exe\""))
+
 (defun mvtn-test-file-exists-disregarding-timestamp-p (filename dir)
   "Check wether FILENAME exists in DIR, disregarding mvtn
 timestamps. Therefore, TIMESTAMP has to be provided *without* the

@@ -302,7 +302,7 @@ since find's sorting relies on creation time"
   (split-string
    (shell-command-to-string
     (format "%s * -type f %s -print %s | sort"
-            (executable-find find-program)
+            find-program
             (if search
                 (format "-name '*%s*'" search) "")
             (if mvtn-excluded-directories
