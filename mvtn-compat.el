@@ -9,7 +9,7 @@ Does not show hidden files (prefixed with '.').
 Emacs <27 compatibility: less performant since it needs to traverse all
 excluded directories and only filters afterwards."
   (mapcar (lambda (file-name)
-            (substring file-name (1+ (length default-directory))))
+            (substring file-name (length (expand-file-name default-directory))))
           (seq-filter (lambda (file)
                         (not (member
                               nil (mapcar (lambda (dir) (not (string-match-p
