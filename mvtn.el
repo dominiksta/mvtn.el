@@ -532,7 +532,9 @@ are returned as relative paths."
         (mvtn-search-years (if all 1000 mvtn-search-years)))
     (dolist (root-el mvtn-note-directories)
       (dolist (currstruct (plist-get root-el :structure))
-        (if (plist-get currstruct :datetree)
+        (when (file-exists-p (concat (plist-get root-el :dir) "/"
+                                     (plist-get currstruct :dir)))
+          (if (plist-get currstruct :datetree)
             (let* ((currdir (plist-get currstruct :dir))
                    (yeardirs (directory-files
                               (concat (plist-get root-el :dir) "/"
@@ -551,7 +553,7 @@ are returned as relative paths."
                             (concat (plist-get root-el :dir) "/") "")))
             (setq result
                   (append result (list (concat
-                                        prefix (plist-get currstruct :dir)))))))))
+                                        prefix (plist-get currstruct :dir))))))))))
     (seq-filter 'file-exists-p result)))
 
 
