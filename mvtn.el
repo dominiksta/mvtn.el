@@ -35,19 +35,74 @@
 (require 'seq)
 (require 'grep)
 
-(defcustom mvtn-note-directory (expand-file-name "~/mvtn")
-  "The base directory for all your mvtn notes."
-  :type 'string :group 'mvtn)
+(defcustom mvtn-note-directories
+  '((:dir "~/mvtn/private" :name "prv" :structure
+          ((:dir "fleeting" :datetree t)
+           (:dir "zettelkasten" :datetree t)
+           (:dir "devlog" :datetree t)
+           (:dir "static" :datetree nil)))
+    (:dir "~/mvtn/work" :name "wrk" :structure
+          ((:dir "fleeting" :datetree t)
+           (:dir "meetings" :datetree t)
+           (:dir "devlog" :datetree t)
+           (:dir "static" :datetree nil))))
+  "The directory structure for all your mvtn notes. Structurally,
+this is a list of plists, where each element contains the
+following keys:
 
-(defcustom mvtn-static-note-directories
-  '("static")
-  "A list containing all the directory names inside the
-`mvtn-note-directory' that contain notes which are year
-independent. These notes are always displayed when calling
-`mvtn-open-note', `mvtn-insert-link' and everything else affected
-by `mvtn-list-files-function' - independently from the value of
-`mvtn-search-years'."
-  :type '(list :value-type string) :group 'mvtn)
+| Key        | Description                                                |
+|------------+------------------------------------------------------------|
+| :dir       | A directory on the file system. This will not contain      |
+|            | any notes itself; rather it is a base directory            |
+|            | for the subdirectories specified in the :structure         |
+|            | key. It is intended to be used to separate between         |
+|            | categories of notes that for some reason need to be in     |
+|            | different places on the file system. One might for example |
+|            | want to store notes for their professional work on a       |
+|            | separate, encrypted drive. It is possible to specify drive |
+|            | letters on windows (e.g. 'd:/mvtn/').                      |
+| :name      | An abbreviated name of the directory. This helps to        |
+|            | improve the readabilty of a lot of listings and            |
+|            | searches. Can be any string of characters.                 |
+| :structure | As already mentioned, this key describes subdirectories    |
+|            | of :dir.                                                   |
+
+Each element of list specified as the :structure key is itself
+again a list of plists. The required keys are listed in the table
+below.
+
+| Key       | Description                                                 |
+|-----------+-------------------------------------------------------------|
+| :dir      | A directory on the file system. It is relative to the       |
+|           | parent elements :dir. Intended for further                  |
+|           | categorisation beyond the parent elements :dir key.         |
+|           | One might for example want to seperate a 'zettelkasten'     |
+|           | aka 'slip-box' from a 'devlog' or meeting notes.            |
+| :datetree | When this key is set to nil, notes will be created directly |
+|           | in the directory :dir. For long-term scalability, it is     |
+|           | however strongly recommended to set this to t in most       |
+|           | circumstances. When set to t, notes will be created in      |
+|           | subdirectories corresponding to the year the note is taken  |
+|           | in. When performing full-text searches or backlink          |
+|           | searches, mvtn can then omit notes older then               |
+|           | `mvtn-search-years', ensuring long-term scalability.        |
+|           | Setting :datetree to t should only be used for notes that   |
+|           | one wants to always be included in every search,            |
+|           | regardless of their age.                                    |
+
+Example:
+((:dir \"~/mvtn/private\" :name \"prv\" :structure
+       ((:dir \"fleeting\" :datetree t)
+        (:dir \"zettelkasten\" :datetree t)
+        (:dir \"devlog\" :datetree t)
+        (:dir \"static\" :datetree nil)))
+(:dir \"~/mvtn/work\" :name \"wrk\" :structure
+      ((:dir \"fleeting\" :datetree t)
+        (:dir \"meetings\" :datetree t)
+        (:dir \"devlog\" :datetree t)
+        (:dir \"static\" :datetree nil))))
+"
+  :type 'string :group 'mvtn)
 
 (defcustom mvtn-excluded-directories
   '(".git" ".svn" "ltximg")
@@ -118,9 +173,9 @@ strings) to exclude from the search. By default,
            (executable-find find-program))
       'mvtn-list-files-function-find
     'mvtn-list-files-function-native)
-  "Function to traverse all directories (year dependent &
-`mvtn-static-note-directories') in `mvtn-note-directory'
-excluding directories provided in `mvtn-excluded-directories'.
+  "Function to traverse all directories in
+`mvtn-note-directories' excluding directories provided in
+`mvtn-excluded-directories'.
 
 Takes one optional argument SEARCH which allows to only list
 files matching this specific string
@@ -145,6 +200,36 @@ applicable action.)"
   "A regexp matching a valid mvtn id.")
 (defvar mvtn--link-regexp (concat "\\^\\^" mvtn--id-regexp ".*\\^\\^")
   "A regexp matching valid mvtn links.")
+
+(defun mvtn-note-dir-for-name (name)
+  "Returns the :dir property of a note directory in
+`mvtn-note-directories' associated with the given NAME"
+  (let ((candidates (seq-filter (lambda (el) (string-equal (plist-get el :name) name))
+                                mvtn-note-directories)))
+    (cond
+     ((not candidates) (error "No note directory found for name: %s" name))
+     ((> (length candidates) 1) (error "Conflicting note directory names: %s" name))
+     (t (plist-get (car candidates) :dir)))))
+
+(defun mvtn-short-note-dir-list (&optional datetreeonly)
+  "Get all shortened note directory names in `mvtn-note-directories'"
+  (let ((result '()) (currstruct '()))
+    (dolist (root-el mvtn-note-directories)
+      (setq currstruct (plist-get root-el :structure))
+      (when datetreeonly
+        (setq currstruct (seq-filter (lambda (el) (plist-get el :datetree)) currstruct)))
+      (setq result (append result (mapcar (lambda (el) (concat (plist-get root-el :name)
+                                                          "/" (plist-get el :dir)))
+                                          currstruct))))
+    result))
+
+(defun mvtn-expand-note-name (notename)
+  "Translates a path to a note shortened by the :name property of
+the note directory in `mvtn-note-directories' to the full path on
+the disk."
+  (let ((split (split-string notename "/")))
+    (concat (mvtn-note-dir-for-name (car split)) "/"
+            (mapconcat 'identity (cdr split) "/"))))
 
 (defun mvtn-current-timestamp (accuracy)
   "Returns a timestamp for use in generating mvtn filenames. ACCURACY is a
@@ -198,15 +283,6 @@ one of 'year, 'month, 'day, 'hour, 'minute or 'second."
     substituted-timestamp))
 
 
-(defun mvtn-get-create-current-year-directory ()
-  "Returns a directory with the name of the current year in
-`mvtn-note-directory'. If it does not yet exist, it is created."
-  (let ((dir-name (format "%s/%s" mvtn-note-directory (format-time-string "%Y"))))
-    (when (not (file-exists-p dir-name))
-      (mkdir dir-name t))
-    dir-name))
-
-
 (defun mvtn-list-files-function-native (&optional search)
   "Native (elisp) implementation for `mvtn-list-files-function'.
 Does not show hidden files (prefixed with '.')"
@@ -226,7 +302,7 @@ since find's sorting relies on creation time"
   (split-string
    (shell-command-to-string
     (format "%s * -type f %s -print %s | sort"
-            (executable-find find-program)
+            find-program
             (if search
                 (format "-name '*%s*'" search) "")
             (if mvtn-excluded-directories
@@ -236,49 +312,96 @@ since find's sorting relies on creation time"
    "\n" t))
 
 
-(defun mvtn--directory-files (&optional search)
-  "Checks if `default-directory' exists and calls `mvtn-list-files-function'."
-  (if (file-exists-p default-directory)
-      (funcall mvtn-list-files-function search)
+(defun mvtn--directory-files (dir &optional prefix search)
+  "Checks if DIR exists, calls `mvtn-list-files-function' with
+`default-directory' set to DIR and prefixes all results with PREFIX."
+  (if (file-exists-p dir)
+      (let ((default-directory dir))
+        (if prefix
+            (mapcar (lambda (el) (format "%s/%s" prefix el))
+                    (funcall mvtn-list-files-function search))
+          (funcall mvtn-list-files-function search)))
     nil))
 
-
 (defun mvtn-list-files (&optional all)
-  "Return a list of all files in `mvtn-note-directory'
+  "Return a list of all files in `mvtn-note-directories'
 recursively. Limit to `mvtn-search-years' unless ALL is non-nil."
-  (let* ((filelist '())
-         (current-year (string-to-number (format-time-string "%Y")))
-         (yearlist (if all
-                       (directory-files mvtn-note-directory nil "^[[:digit:]]\\{4\\}$")
-                     (number-sequence (1+ (- current-year mvtn-search-years)) current-year))))
-    (dolist (current-dir (append mvtn-static-note-directories yearlist))
-      (let ((default-directory (format "%s/%s" mvtn-note-directory current-dir)))
-        (setq filelist (append filelist (mapcar (lambda (filename)
-                                                  (format "%s/%s" current-dir filename))
-                                                (mvtn--directory-files))))))
-    (if (eq mvtn-list-files-order 'asc) filelist (reverse filelist))))
+  (let* ((files-datetree '()) (files-other '())
+         (current-year (string-to-number (format-time-string "%Y"))))
+    ;; datetree first
+    (dolist (root-el mvtn-note-directories)
+      (dolist (structure-el (plist-get root-el :structure))
+        (let* ((structure-dir (plist-get structure-el :dir))
+               (root-name (plist-get root-el :name))
+               (root-dir (plist-get root-el :dir)))
+          (if (and (plist-get structure-el :datetree)
+                   (file-exists-p (format "%s/%s" root-dir structure-dir)))
+              (dolist (year (if all
+                                (directory-files (format "%s/%s" root-dir structure-dir)
+                                                 nil "^[[:digit:]]\\{4\\}$")
+                              (number-sequence
+                               (1+ (- current-year mvtn-search-years)) current-year)))
+                (let ((dir (format "%s/%s/%s/" root-dir structure-dir year))
+                      (prefix (format "%s/%s/%s/" root-name structure-dir year)))
+                  (if (file-exists-p dir)
+                      (setq files-datetree (append (mapcar (lambda (el) (cons el prefix))
+                                                     (mvtn--directory-files dir))
+                                             files-datetree)))))))))
+    (setq files-datetree (sort files-datetree (lambda (a b) (string< (car a) (car b)))))
+    ;; non-datetree second
+    (dolist (root-el mvtn-note-directories)
+      (dolist (structure-el (plist-get root-el :structure))
+        (let* ((structure-dir (plist-get structure-el :dir))
+               (root-name (plist-get root-el :name))
+               (root-dir (plist-get root-el :dir)))
+          (if (not (plist-get structure-el :datetree))
+            (let ((dir (format "%s/%s/" root-dir structure-dir))
+                  (prefix (format "%s/%s/" root-name structure-dir)))
+              (if (file-exists-p dir)
+                  (setq files-other (append (mapcar (lambda (el) (cons el prefix))
+                                                 (mvtn--directory-files dir))
+                                         files-other))))))))
+    (setq files-other
+          (sort files-other (lambda (a b) (string< (mvtn--extract-note-identity (car a))
+                                              (mvtn--extract-note-identity (car b))))))
+    (when (eq mvtn-list-files-order 'desc)
+      (setq files-datetree (reverse files-datetree))
+      (setq files-other (reverse files-other)))
+    (mapcar (lambda (el) (concat (cdr el) (car el)))
+            (append files-datetree files-other))))
+
 
 (defun mvtn-generate-file-name (timestamp title extension tags &optional encrypt)
   "Get an mvtn file-name following this template:
 \"{TIMESTAMP} {TITLE} -- {TAGS}.{EXTENSION}[.gpg]\""
   (substring-no-properties
-   (format "%s/%s %s%s.%s%s" (mvtn-get-create-current-year-directory)
-           timestamp title (if (car (split-string tags)) (concat " -- " tags) "")
+   (format "%s %s%s.%s%s" timestamp title
+           (if (car (split-string tags)) (concat " -- " tags) "")
            extension (if encrypt ".gpg" ""))))
 
-(defun mvtn-touch-new-file (timestamp title extension tags &optional encrypt)
-  "Use `mvtn-generate-file-name' to create a new file.
-RETURN the full name of the newly created file."
-  (let ((file-name (mvtn-generate-file-name timestamp title extension tags encrypt)))
-    (write-region "" nil file-name) file-name))
+(defun mvtn-touch-new-file (dir timestamp title extension tags &optional encrypt)
+  "Use `mvtn-generate-file-name' to create a new file in DIR
+where DIR is one of `mvtn-short-note-dir-list'. If DIR is
+configured as a datetree, the file is created in the directory
+for the current year. RETURN the full name of the newly created
+file."
+  (let* ((file-name (mvtn-generate-file-name timestamp title extension tags encrypt))
+         (full-dir (concat (mvtn-expand-note-name dir)
+                           (if (member dir (mvtn-short-note-dir-list t))
+                               (concat "/" (format-time-string "%Y")) "")))
+         (default-directory full-dir))
+    (if (not (file-exists-p full-dir)) (mkdir full-dir t))
+    (write-region "" nil file-name)
+    (substring-no-properties (concat full-dir "/" file-name))))
 
-(defun mvtn-create-new-file (title tags &optional encrypt no-template)
+(defun mvtn-create-new-file (dir title tags &optional encrypt no-template)
   "Use `mvtn-touch-new-file' to create a new file, insert a
 template according to `mvtn-file-extension-templates' and open
-the buffer to the resulting file. RETURN that buffer."
+the buffer to the resulting file. DIR should be one of
+`mvtn-short-note-dir-list'. RETURN the buffer to the new file."
   (let* ((timestamp (mvtn-current-timestamp 'second))
          (file-name (mvtn-touch-new-file
-                     timestamp title mvtn-default-file-extension tags encrypt))
+                     dir timestamp title mvtn-default-file-extension tags encrypt))
          (template (mvtn-substitute-template
                     (mvtn-template-for-extension mvtn-default-file-extension)
                     title (format-time-string "%Y-%m-%d") timestamp))
@@ -324,17 +447,33 @@ or syncthing.
 
 Example:
 (mvtn-link-targets \"^^20210110-000548 ABCDEFGBLABLA.asd^^\")
--> \"/path/to/notes/2021/20210110-000548 Branching in Subversion.org\""
+-> \"prv/devlog/2021/20210110-000548 Branching in Subversion.org\""
   (when (not (string-match-p mvtn--link-regexp link)) (error "Invalid mvtn link"))
   (let* ((timestamp (mvtn--extract-note-identity link))
-         (year-dir (mvtn-timestamp-field timestamp 'year))
+         (year (mvtn-timestamp-field timestamp 'year))
          (matches '()))
-    (dolist (current-dir `(,year-dir ,@mvtn-static-note-directories))
-      (let ((default-directory (format "%s/%s" mvtn-note-directory current-dir)))
-        (setq matches (append matches
-                              (mapcar (lambda (filename)
-                                        (format "%s/%s" current-dir filename))
-                                      (mvtn--directory-files timestamp))))))
+    ;; datetrees first
+    (dolist (root-el mvtn-note-directories)
+      (dolist (structure-el (plist-get root-el :structure))
+        (let ((root-dir (plist-get root-el :dir))
+              (root-name (plist-get root-el :name))
+              (structure-dir (plist-get structure-el :dir)))
+          (if (plist-get structure-el :datetree)
+              (let ((dir (format "%s/%s/%s" root-dir structure-dir year))
+                    (prefix (format "%s/%s/%s" root-name structure-dir year)))
+                (setq matches (append matches (mvtn--directory-files
+                                               dir prefix timestamp))))))))
+    ;; non-datetrees second
+    (dolist (root-el mvtn-note-directories)
+      (dolist (structure-el (plist-get root-el :structure))
+        (let ((root-dir (plist-get root-el :dir))
+              (root-name (plist-get root-el :name))
+              (structure-dir (plist-get structure-el :dir)))
+          (if (not (plist-get structure-el :datetree))
+              (let ((dir (format "%s/%s" root-dir structure-dir))
+                    (prefix (format "%s/%s" root-name structure-dir)))
+                (setq matches (append matches (mvtn--directory-files
+                                               dir prefix timestamp))))))))
     matches))
 
 
@@ -349,7 +488,7 @@ prompts for disambiguation."
                        ((= (length matches) 1)
                         (car matches))
                        (t (error "No matches found for link")))))
-    (find-file (format "%s/%s" mvtn-note-directory target))
+    (find-file (mvtn-expand-note-name target))
     (dolist (el mvtn-link-actions)
       (when (string-match-p (car el) link)
         (funcall (cadr el)
@@ -367,9 +506,8 @@ available. See `mvtn-link-actions'."
     (pulse-momentary-highlight-region (match-beginning 0) (match-end 0))))
 
 
-(defun mvtn-search-full-text-grep (string exclude-dirs)
-  "Searches STRING using `grep' in `default-directory', excluding
-directories specified as a list of strings in DIRS."
+(defun mvtn-search-full-text-grep (string dirs)
+  "Searches STRING using `grep' in DIRS."
   ;; `grep-use-null-device' is only useful when -H is not an option and only one
   ;; file is searched. Although -H is apparently not posix-compliant, it is
   ;; included in both BSD and GNU grep. I therefore hereby declare that this
@@ -377,28 +515,58 @@ directories specified as a list of strings in DIRS."
   ;; `grep-use-null-device' remains enabled, it causes problems when using
   ;; compatibility layers like cygwin.
   (let ((grep-use-null-device nil))
-    (grep (concat (executable-find "grep") " -nH --null -r -I "
-                  (mapconcat (lambda (dir) (format "--exclude-dir=\"%s\"" dir))
-                             exclude-dirs " ")
-                  " " (shell-quote-argument string)))))
+    (grep (concat (shell-quote-argument (executable-find "grep"))
+                  " "
+                  (shell-quote-argument string)
+                  " -nH --null -r -I "
+                  (mapconcat 'identity dirs " ")))))
+
+
+(defun mvtn--search-dirs (&optional all)
+  "Return a list of all directories in `mvtn-note-directories'
+that should be searched in `mvtn-search-full-text'. Paths for the
+subdirectories of the first element in `mvtn-note-directories'
+are returned as relative paths."
+  (let ((result '())
+        (current-year (string-to-number (format-time-string "%Y")))
+        (mvtn-search-years (if all 1000 mvtn-search-years)))
+    (dolist (root-el mvtn-note-directories)
+      (dolist (currstruct (plist-get root-el :structure))
+        (when (file-exists-p (concat (plist-get root-el :dir) "/"
+                                     (plist-get currstruct :dir)))
+          (if (plist-get currstruct :datetree)
+            (let* ((currdir (plist-get currstruct :dir))
+                   (yeardirs (directory-files
+                              (concat (plist-get root-el :dir) "/"
+                                      currdir)
+                              nil "^[[:digit:]]\\{4\\}$"))
+                   (yeardirs-filtered
+                    (seq-filter (lambda (dir) (> dir (- current-year mvtn-search-years)))
+                                (mapcar 'string-to-number yeardirs)))
+                   (prefix (if (not (eq root-el (car mvtn-note-directories)))
+                               (concat (expand-file-name (plist-get root-el :dir)) "/") ""))
+                   (searchdirs
+                    (mapcar (lambda (el) (concat prefix currdir "/" (number-to-string el)))
+                            yeardirs-filtered)))
+              (setq result (append result searchdirs)))
+          (let ((prefix (if (not (eq root-el (car mvtn-note-directories)))
+                            (concat (expand-file-name (plist-get root-el :dir)) "/") "")))
+            (setq result
+                  (append result (list (concat
+                                        prefix (plist-get currstruct :dir))))))))))
+    (seq-filter 'file-exists-p result)))
 
 
 ;;;###autoload
 (defun mvtn-search-full-text (string &optional all)
-  "Search for STRING in `mvtn-note-directory', using
+  "Search for STRING in `mvtn-note-directories', using
 `mvtn-search-function', excluding directories according to
 `mvtn-search-years'."
   (interactive "MSearch: \nP")
-  (let* ((default-directory mvtn-note-directory)
-         (current-year (string-to-number (format-time-string "%Y")))
-         (exclude-dirs
-          (seq-filter (lambda (dir) (<= dir (- current-year mvtn-search-years)))
-                      (mapcar 'string-to-number
-                              (directory-files mvtn-note-directory nil
-                                               "^[[:digit:]]\\{4\\}$")))))
+  (let* ((default-directory (plist-get (car mvtn-note-directories) :dir)))
     (if all
-        (funcall mvtn-search-function string nil)
-      (funcall mvtn-search-function string exclude-dirs))))
+        (funcall mvtn-search-function string (mvtn--search-dirs t))
+      (funcall mvtn-search-function string (mvtn--search-dirs)))))
 
 
 ;;;###autoload
@@ -443,10 +611,16 @@ argument), then `mvtn-search-years' is ignored."
 
 ;;;###autoload
 (defun mvtn-jump-current-year-directory ()
-  "Jump to {`mvtn-note-directory'}/{current-year}. Uses `dired'
-or whatever `find-file' is configured to do for directories."
+  "Jump to a directory in `mvtn-note-directories' in
+`dired'. Opens the directory for the current year if a directory
+configured as a datetree is selected."
   (interactive)
-  (find-file (mvtn-get-create-current-year-directory)))
+  (let ((choice (completing-read "Directory: " (mvtn-short-note-dir-list))))
+    (when (member choice (mvtn-short-note-dir-list t))
+      (setq choice (concat choice "/" (format-time-string "%Y"))))
+    (setq choice (mvtn-expand-note-name choice))
+    (if (not (file-exists-p choice)) (mkdir choice t))
+    (dired choice)))
 
 
 ;;;###autoload
@@ -455,18 +629,18 @@ or whatever `find-file' is configured to do for directories."
 the buffer of the new note. If ENCRYPT is non-nil, 'epa.el' is
 used to encrypt the file with gpg."
   (interactive "P")
-  (let ((title (read-from-minibuffer "Title: "))
+  (let ((dir (completing-read "Directory: " (mvtn-short-note-dir-list)))
+        (title (read-from-minibuffer "Title: "))
         (tags (read-from-minibuffer "Tags: ")))
-    (switch-to-buffer (mvtn-create-new-file title tags encrypt))))
+    (switch-to-buffer (mvtn-create-new-file dir title tags encrypt))))
 
 
 ;;;###autoload
 (defun mvtn-open-note (&optional all)
-  "Opens a note from `mvtn-note-directory'. Supports completion."
+  "Opens a note from `mvtn-note-directories'. Supports completion."
   (interactive "P")
-  (let* ((default-directory mvtn-note-directory)
-         (answer (completing-read "Open note: " (mvtn-list-files all))))
-    (find-file answer)))
+  (let* ((answer (completing-read "Open note: " (mvtn-list-files all))))
+    (find-file (mvtn-expand-note-name answer))))
 
 (defvar mvtn-minor-mode-map (make-sparse-keymap))
 (define-key mvtn-minor-mode-map (kbd "C-c C-. o") 'mvtn-follow-link-at-point)
@@ -485,11 +659,18 @@ used to encrypt the file with gpg."
   nil " mvtn" mvtn-minor-mode-map)
 
 (defun maybe-enable-mvtn-minor-mode ()
-  "Enable `mvtn-minor-mode' when file is in `mvtn-note-directory'"
-    (condition-case nil
-        (when (string-match-p (expand-file-name mvtn-note-directory)
-                              (buffer-file-name (current-buffer)))
-          (mvtn-minor-mode 1)) (error nil)))
+  "Enable `mvtn-minor-mode' when file is in `mvtn-note-directories'"
+  (condition-case nil
+      (let* ((note-dirs (mapcar 'expand-file-name
+                                (mapcar 'mvtn-expand-note-name
+                                        (mvtn-short-note-dir-list))))
+             (matches (mapcar (lambda (el) (string-match-p
+                                       el (buffer-file-name
+                                           (current-buffer))))
+                              note-dirs)))
+        (when (> (length (remq nil matches)) 0)
+               (mvtn-minor-mode 1)))
+     (error nil)))
 
 (add-hook 'text-mode-hook 'maybe-enable-mvtn-minor-mode)
 

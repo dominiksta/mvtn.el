@@ -2,6 +2,12 @@
 
 (require 'seq)
 
+;; While this might not be applicable for all windows systems, without this the
+;; relevant unit test for `mvtn-list-files-function-find' fails on every windows
+;; system.
+(when (eq system-type 'windows-nt)
+  (setq find-program "\"c:/Program Files/Git/usr/bin/find.exe\""))
+
 (defun mvtn-test-file-exists-disregarding-timestamp-p (filename dir)
   "Check wether FILENAME exists in DIR, disregarding mvtn
 timestamps. Therefore, TIMESTAMP has to be provided *without* the
@@ -22,10 +28,13 @@ timestamp. Example:
 
 
 (defmacro mvtn-test-with-testfiles (no-delete &rest body)
-  `(let ((mvtn-note-directory mvtn-test-note-dir))
+  `(let ((mvtn-note-directories mvtn-test-note-dirs))
      (when (file-exists-p mvtn-test-note-dir)
        (delete-directory mvtn-test-note-dir t))
-     (mkdir mvtn-test-note-dir) (cd mvtn-test-note-dir)
+     (mkdir mvtn-test-note-dir t) (cd mvtn-test-note-dir)
+     (mkdir (plist-get (car mvtn-test-note-dirs) :dir) t)
+     (cd (plist-get (car mvtn-test-note-dirs) :dir))
+     (mkdir "zettelkasten") (cd "zettelkasten")
      (mkdir "1999") (cd "1999")
      (mvtn-test-touch "19990110-134522 test1 -- tags test.txt")
      (mvtn-test-touch "19990110-134522 test2 test2.txt")
@@ -55,22 +64,25 @@ And some more content."
      (mvtn-test-touch "20201212-134542 test2 test2 -- tags tags tags.txt")
      (mvtn-test-touch "20201212-134544 test3 test3.org")
      (cd "..") (mkdir "2021") (cd "2021")
-     (mvtn-touch-new-file "20210110-134522" "test1" "md" "i have tags")
-     (mvtn-touch-new-file "20210110-134523" "test2 test2" "txt" "")
+     (mvtn-touch-new-file "prv/zettelkasten" "20210110-134522" "test1" "md" "i have tags")
+     (mvtn-touch-new-file "prv/zettelkasten" "20210110-134523" "test2 test2" "txt" "")
      (mvtn-test-touch "20210110-134524 test3 test3.org")
-     (cd "..") (mkdir "static") (cd "static")
+     (cd "../..") (mkdir "static") (cd "static")
      (mvtn-test-touch "20130210-134522 an old statically displayed note.md")
      (mvtn-test-touch "20130210-134522 an old statically displayed note.org")
      (mkdir "ltximg") (cd "ltximg")
      (mvtn-test-touch "someimage.png") (mvtn-test-touch "someimage2.png")
      (mvtn-test-touch "20130210-123456 a note in an excluded folder.md")
-     (cd "..")
-     (mkdir "work") (cd "work")
-     (mvtn-test-touch "20140210-134522 a note for work 1.md")
-     (mvtn-test-touch "20140210-134522 a note for work 2.org")
-     (cd "../../..")
+     (cd mvtn-test-note-dir)
+     (mkdir (plist-get (cadr mvtn-test-note-dirs) :dir))
+     (cd (plist-get (cadr mvtn-test-note-dirs) :dir))
+     (mkdir "meetings") (cd "meetings")
+     (mkdir "2019") (cd "2019")
+     (mvtn-test-touch "20190210-134522 a note for work 1.md")
+     (mvtn-test-touch "20190210-134522 a note for work 2.org")
      (let ((result (progn ,@body)))
        (when (not ,no-delete) (delete-directory mvtn-test-note-dir t))
+       (cd (concat mvtn-test-note-dir "/.."))
        result)))
 
 (provide 'mvtn-test-helpers)

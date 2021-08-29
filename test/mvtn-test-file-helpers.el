@@ -8,9 +8,10 @@
   "Test `mvtn-rename-current-file'"
   (mvtn-test-with-testfiles nil
    (let ((orig-file (concat mvtn-test-note-dir
-                            "/1999/19990110-134522 test2 test2.txt"))
-         (should-new-file (concat mvtn-test-note-dir
-                                  "/1999/19990110-134522 My New Name.txt")))
+                            "/private/zettelkasten/1999/19990110-134522 test2 test2.txt"))
+         (should-new-file (concat
+                           mvtn-test-note-dir
+                           "/private/zettelkasten/1999/19990110-134522 My New Name.txt")))
      (with-current-buffer (find-file-noselect orig-file)
        (should (string-equal (buffer-substring-no-properties
                               (point-min) (point-at-eol))
