@@ -21,6 +21,7 @@
   "Needed for `mvtn--rg-search-full-command'")
 (defun mvtn--rg-overwrite-command (orig-fun &rest args)
   "Needed for `mvtn--rg-search-full-command'"
+  (ignore orig-fun) ;; ignore argument -> no compiler warnings
   (message "rg-build-command called with args %S" args)
   mvtn--rg-overwrite-command-command)
 

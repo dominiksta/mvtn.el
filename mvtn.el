@@ -367,8 +367,8 @@ recursively. Limit to `mvtn-search-years' unless ALL is non-nil."
     (when (eq mvtn-list-files-order 'desc)
       (setq files-datetree (reverse files-datetree))
       (setq files-other (reverse files-other)))
-    (setq filelist (mapcar (lambda (el) (concat (cdr el) (car el)))
-                           (append files-datetree files-other)))))
+    (mapcar (lambda (el) (concat (cdr el) (car el)))
+            (append files-datetree files-other))))
 
 
 (defun mvtn-generate-file-name (timestamp title extension tags &optional encrypt)
@@ -563,8 +563,7 @@ are returned as relative paths."
 `mvtn-search-function', excluding directories according to
 `mvtn-search-years'."
   (interactive "MSearch: \nP")
-  (let* ((default-directory (plist-get (car mvtn-note-directories) :dir))
-         (current-year (string-to-number (format-time-string "%Y"))))
+  (let* ((default-directory (plist-get (car mvtn-note-directories) :dir)))
     (if all
         (funcall mvtn-search-function string (mvtn--search-dirs t))
       (funcall mvtn-search-function string (mvtn--search-dirs)))))
