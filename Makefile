@@ -5,6 +5,7 @@ VERSION = 0.1
 EL      = mvtn.el \
           mvtn-compat.el \
           mvtn-file-helpers.el \
+          mvtn-link-buttons.el \
           mvtn-tag-addons.el \
           mvtn-ag.el \
           mvtn-rg.el
@@ -39,6 +40,7 @@ mvtn-test-tag-addons.elc: mvtn.el test/mvtn-test-helpers.el test/mvtn-test.el
 mvtn-file-helpers.elc: mvtn.el
 mvtn-ag.elc: mvtn.el
 mvtn-rg.elc: mvtn.el
+mvtn-link-buttons.el: mvtn.el
 
 
 # ----------------------------------------------------------------------
