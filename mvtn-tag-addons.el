@@ -24,6 +24,62 @@ not contain any of the specified TAGS."
     files))
 
 ;; ----------------------------------------------------------------------
+;; Controlled Vocabulary
+;; ----------------------------------------------------------------------
+
+(defcustom mvtn-cv-file
+  (concat (plist-get (car mvtn-note-directories) :dir) "/tags.txt")
+  "A file where you can store a 'controlled vocabulary'.
+
+To use this, first set `mvtn-cv-enable' to t.
+
+Using a controlled vocabulary refers to the practice of only
+using a predetermined set of tags.  Without a controlled
+vocabulary, one might for example accidentaly use the tags 'dev'
+and 'programming' or 'stud' and 'studying' interchangeably,
+making tag searches much less useful.
+
+The file format is best illustrated with an example:
+
+stud :: Notes relating to university
+lit  :: literature i am reading / have read
+dev  :: programming/sysadmin/devops stuff
+
+This example defines (only) three available tags: 'stud', 'lit'
+and 'dev'.  Every line starts with a tag and then provides a short
+description after two colons (:)."
+  :type 'string :group 'mvtn)
+
+(defun mvtn--get-string-from-file (file)
+  "Return the content of FILE."
+  (with-temp-buffer (insert-file-contents file) (buffer-string)))
+
+(defun mvtn-cv-read-tags-from-file ()
+  "Return a list of tags specified in `mvtn-cv-file'."
+  (mapcar (lambda (el) (save-match-data
+                    (string-match "\\([^ ]+\\) +:: \\(.+\\)" el)
+                    (match-string-no-properties 1 el)))
+          (split-string (mvtn--get-string-from-file mvtn-cv-file) "\n")))
+
+;;;###autoload
+(defun mvtn-cv-prompt-for-tags ()
+  "Prompts for a selection of `mvtn-cv-read-tags-from-file'.
+When a tag is not in the controlled vocabulary, the user is asked
+wether they want to continue with the potentially incorrect tags
+or try entering their tags again."
+  (when (not (file-exists-p mvtn-cv-file))
+    (error "%s does not exist.  Please create it" mvtn-cv-file))
+  (let* ((cv (mvtn-cv-read-tags-from-file))
+         (answer (completing-read-multiple "Tags (comma-separated): " cv))
+         (continue t))
+    (dolist (el answer)
+      (if (and (not (member el cv))
+               (not (y-or-n-p (concat "'" el "' is not in your controlled vocabulary. "
+                                      "Continue anyway?"))))
+          (setq continue nil)))
+    (if continue answer (mvtn-cv-prompt-for-tags))))
+
+;; ----------------------------------------------------------------------
 ;; `mvtn-tag-file-list'
 ;; ----------------------------------------------------------------------
 

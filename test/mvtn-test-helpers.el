@@ -64,8 +64,9 @@ And some more content."
      (mvtn-test-touch "20201212-134542 test2 test2 -- tags tags tags.txt")
      (mvtn-test-touch "20201212-134544 test3 test3.org")
      (cd "..") (mkdir "2021") (cd "2021")
-     (mvtn-touch-new-file "prv/zettelkasten" "20210110-134522" "test1" "md" "i have tags")
-     (mvtn-touch-new-file "prv/zettelkasten" "20210110-134523" "test2 test2" "txt" "")
+     (mvtn-touch-new-file "prv/zettelkasten" "20210110-134522" "test1" "md"
+                          '("i" "have" "tags"))
+     (mvtn-touch-new-file "prv/zettelkasten" "20210110-134523" "test2 test2" "txt" nil)
      (mvtn-test-touch "20210110-134524 test3 test3.org")
      (cd "../..") (mkdir "static") (cd "static")
      (mvtn-test-touch "20130210-134522 an old statically displayed note.md")

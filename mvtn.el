@@ -35,6 +35,8 @@
 (require 'seq)
 (require 'grep)
 
+(declare-function mvtn-cv-prompt-for-tags "ext:mvtn-tag-addons")
+
 (defcustom mvtn-note-directories
   '((:dir "~/mvtn/private" :name "prv" :structure
           ((:dir "fleeting" :datetree t)
@@ -195,6 +197,11 @@ associated function *after* following the link. (Mvtn goes
 through this list top to bottom and only executes the first
 applicable action.)"
   :type '(alist :value-type (group symbol)) :group 'mvtn)
+
+(defcustom mvtn-cv-enable nil
+  "Wether to enable the use of a controlled vocabulary.
+See `mvtn-cv-file' for further documentation."
+  :type 'boolean :group 'mvtn)
 
 (defvar mvtn--id-regexp "[[:digit:]]\\{8\\}-[[:digit:]]\\{6\\}"
   "A regexp matching a valid mvtn id.")
@@ -373,10 +380,12 @@ recursively. Limit to `mvtn-search-years' unless ALL is non-nil."
 
 (defun mvtn-generate-file-name (timestamp title extension tags &optional encrypt)
   "Get an mvtn file-name following this template:
-\"{TIMESTAMP} {TITLE} -- {TAGS}.{EXTENSION}[.gpg]\""
+\"{TIMESTAMP} {TITLE} -- {TAGS}.{EXTENSION}[.gpg]\"
+TAGS is a list of strings, TIMESTAMP, TITLE, EXTENSION are strings. ENCRYPT is
+either nil or non-nil."
   (substring-no-properties
    (format "%s %s%s.%s%s" timestamp title
-           (if (car (split-string tags)) (concat " -- " tags) "")
+           (if tags (concat " -- " (mapconcat 'identity tags " ")) "")
            extension (if encrypt ".gpg" ""))))
 
 (defun mvtn-touch-new-file (dir timestamp title extension tags &optional encrypt)
@@ -622,6 +631,10 @@ configured as a datetree is selected."
     (if (not (file-exists-p choice)) (mkdir choice t))
     (dired choice)))
 
+(defun mvtn-prompt-for-tags ()
+  "Prompt for a selection of comma-separated tags."
+  (let ((answer (read-from-minibuffer "Tags (comma-seperated): ")))
+    (if (eq (length answer) 0) nil (split-string answer ","))))
 
 ;;;###autoload
 (defun mvtn-new-note (&optional encrypt)
@@ -631,7 +644,8 @@ used to encrypt the file with gpg."
   (interactive "P")
   (let ((dir (completing-read "Directory: " (mvtn-short-note-dir-list)))
         (title (read-from-minibuffer "Title: "))
-        (tags (read-from-minibuffer "Tags: ")))
+        (tags (if mvtn-cv-enable
+                  (mvtn-cv-prompt-for-tags) (mvtn-prompt-for-tags))))
     (switch-to-buffer (mvtn-create-new-file dir title tags encrypt))))
 
 

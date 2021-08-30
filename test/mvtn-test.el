@@ -67,7 +67,7 @@ files. Mocking seemed like too much of a hassle here.")
    (let ((mvtn-default-file-extension "test")
          (yeardir (concat (mvtn-expand-note-name "prv/zettelkasten") "/"
                           (format-time-string "%Y"))))
-     (mvtn-create-new-file "prv/zettelkasten" "My Note Title" "tag1 tag2")
+     (mvtn-create-new-file "prv/zettelkasten" "My Note Title" '("tag1" "tag2"))
      (should (mvtn-test-file-exists-disregarding-timestamp-p
               "My Note Title -- tag1 tag2.test"
               yeardir))
