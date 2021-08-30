@@ -18,7 +18,7 @@
   "The keymap when point is at an mvtn")
 
 (defvar mvtn--named-link-regexp
-  "\\(\\^\\^\\)\\([[:digit:]]\\{8\\}-[[:digit:]]\\{6\\}\\)\\( \\)\\(.+\\)\\(\\^\\^\\)"
+  "\\(\\^\\^\\)\\([[:digit:]]\\{8\\}-[[:digit:]]\\{6\\}\\)\\( \\)\\([^^]+\\)\\(\\^\\^\\)"
   "Only matches 'named' mvtn links (meaning links with text after the id)")
 
 (defvar mvtn-link-properties

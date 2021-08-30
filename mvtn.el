@@ -198,7 +198,7 @@ applicable action.)"
 
 (defvar mvtn--id-regexp "[[:digit:]]\\{8\\}-[[:digit:]]\\{6\\}"
   "A regexp matching a valid mvtn id.")
-(defvar mvtn--link-regexp (concat "\\^\\^" mvtn--id-regexp ".*\\^\\^")
+(defvar mvtn--link-regexp (concat "\\^\\^" mvtn--id-regexp "[^^]*\\^\\^")
   "A regexp matching valid mvtn links.")
 
 (defun mvtn-note-dir-for-name (name)
