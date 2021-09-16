@@ -281,12 +281,13 @@ one of 'year, 'month, 'day, 'hour, 'minute or 'second."
   "Substitute {title} for TITLE and {date} for DATE in TEMPLATE-STRING."
   (declare (side-effect-free t))
   ;; TODO There has to be a more elegant way of doing this:
-  (let* ((substituted-title
-          (replace-regexp-in-string "\{title\}" title template-string))
+  (let* ((title-without-backslash (replace-regexp-in-string "\\\\" "\\\\\\\\" title))
+         (substituted-title
+          (replace-regexp-in-string "{title}" title-without-backslash template-string))
          (substituted-date
-          (replace-regexp-in-string "\{date\}" date substituted-title))
+          (replace-regexp-in-string "{date}" date substituted-title))
          (substituted-timestamp
-          (replace-regexp-in-string "\{timestamp\}" timestamp substituted-date)))
+          (replace-regexp-in-string "{timestamp}" timestamp substituted-date)))
     substituted-timestamp))
 
 
@@ -378,13 +379,23 @@ recursively. Limit to `mvtn-search-years' unless ALL is non-nil."
             (append files-datetree files-other))))
 
 
+(defun mvtn-title-to-acceptable-file-name (title)
+  "Returns TITLE except all characters not allowed on either NTFS
+or EXT4 will be replaced by an underscore ('_')
+
+Specifically:
+- / is not allowed on Linux
+- <, >, :, \", /, \\, |, ? and * are not allowed on Windows"
+  (replace-regexp-in-string "/\\|<\\|>\\|*\\||\\|:\\|\\\\\\|?" "_" title))
+
+
 (defun mvtn-generate-file-name (timestamp title extension tags &optional encrypt)
   "Get an mvtn file-name following this template:
 \"{TIMESTAMP} {TITLE} -- {TAGS}.{EXTENSION}[.gpg]\"
 TAGS is a list of strings, TIMESTAMP, TITLE, EXTENSION are strings. ENCRYPT is
 either nil or non-nil."
   (substring-no-properties
-   (format "%s %s%s.%s%s" timestamp title
+   (format "%s %s%s.%s%s" timestamp (mvtn-title-to-acceptable-file-name title)
            (if tags (concat " -- " (mapconcat 'identity tags " ")) "")
            extension (if encrypt ".gpg" ""))))
 
