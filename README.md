@@ -3,8 +3,8 @@
 # mvtn - "Minimum Viable Text Notes"
 
 **WARNING**: This package is yet to be tested thouroughly and is still subject
-to breaking changes. Do NOT expect stability just yet. A first release is
-probably done soon enough though.
+to breaking changes. Do NOT expect stability just yet. A first release is coming
+soon™ (or not).
 
 Mvtn is a plain-text note taking system for emacs. The primary guiding principle
 is simplicity. The core of mvtn should *always* remain independent of add-on
