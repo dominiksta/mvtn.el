@@ -9,6 +9,7 @@
 
 (require 'mvtn)
 (require 'seq)
+(require 'cl-lib)
 
 ;; ----------------------------------------------------------------------
 ;; Helpers
@@ -156,4 +157,42 @@ the opened file."
   (interactive)
   (mvtn-tag-file-list-open t))
 
+;; ----------------------------------------------------------------------
+;; `mvtn-org-agenda'
+;; ----------------------------------------------------------------------
+
+(defvar org-agenda-files)
+
+(defvar mvtn-org-agenda-tag "project"
+  "All files with this tag will be added to `org-agenda-files'
+when `mvtn-org-agenda-files-populate' is called.")
+
+(defvar mvtn-org-agenda--initial-files nil
+  "Stores the initial value of `org-agenda-files' before it is
+modified through `mvtn-org-agenda-files-populate' to include all
+notes tagged with `mvtn-org-agenda-tag'.")
+
+(defun mvtn-org-agenda-files-populate ()
+  "Adds all mvtn notes tagged with `mvtn-org-agenda-tag' to
+`org-agenda-files'."
+  (interactive)
+  (when (not mvtn-org-agenda--initial-files)
+    (setq mvtn-org-agenda--initial-files org-agenda-files))
+  (setq org-agenda-files mvtn-org-agenda--initial-files)
+  (dolist (file (mapcar 'mvtn-expand-note-name
+                        (mvtn-list-files-with-tags mvtn-org-agenda-tag)))
+    (when (not (member file org-agenda-files))
+      (push file org-agenda-files))))
+
+;;;###autoload
+(defun mvtn-org-agenda (&optional arg org-keys restriction)
+  "Like `org-agenda', except it calls
+`mvtn-org-agenda-files-populate' before, thereby adding all notes
+tagged with `mvtn-org-agenda-tag' to `org-agenda-files'."
+  (interactive)
+  (mvtn-org-agenda-files-populate)
+  (funcall-interactively 'org-agenda arg org-keys restriction))
+
 (provide 'mvtn-tag-addons)
+
+;;; mvtn-tag-addons.el ends here
