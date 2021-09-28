@@ -16,9 +16,9 @@
 
 ;;;###autoload
 (defun mvtn-search-full-text-ag (string dirs)
-  "Searches STRING using `ag-regexp' in `default-directory',
-excluding directories specified as a list of strings in
-DIRS. Fall back to `mvtn-search-full-text--grep' when
+  "Search for STRING using `ag-regexp' in `default-directory'.
+Excludes directories specified as a list of strings in
+DIRS.  Fall back to `mvtn-search-full-text--grep' when
 `ag-executable' is not found."
   (require 'ag)
   (if (not (executable-find ag-executable))

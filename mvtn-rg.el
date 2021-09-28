@@ -18,16 +18,18 @@
 
 
 (defvar mvtn--rg-overwrite-command-command ""
-  "Needed for `mvtn--rg-search-full-command'")
+  "Needed for `mvtn--rg-search-full-command'.")
 (defun mvtn--rg-overwrite-command (orig-fun &rest args)
-  "Needed for `mvtn--rg-search-full-command'"
+  "Needed for `mvtn--rg-search-full-command'.
+ORIG-FUN will be `rg-run' and ARGS will be passed to it."
   (ignore orig-fun) ;; ignore argument -> no compiler warnings
   (message "rg-build-command called with args %S" args)
   mvtn--rg-overwrite-command-command)
 
 (defun mvtn--rg-search-full-command (dir command)
-  "A dirty hack to allow specifying the complete command line for
-`rg-run'. Necessary for `mvtn--rg-search-multi-directory'"
+  "A hack to allow specifying all cli options for `rg-run'.
+Necessary for `mvtn--rg-search-multi-directory'.  DIR specifies
+the directory to search in and COMMAND is the entire cli for rg."
   (let ((default-directory dir))
     (advice-add 'rg-build-command :around 'mvtn--rg-overwrite-command)
     (setq mvtn--rg-overwrite-command-command command)
@@ -36,7 +38,8 @@
     (advice-remove 'rg-build-command 'mvtn--rg-overwrite-command)))
 
 (defun mvtn--rg-search-multi-directory (base-dir dirs search)
-  "Search multiple directories using `rg'."
+  "Search multiple directories DIRS for SEARCH using `rg'.
+`default-directory' will be set to BASE-DIR."
   ;; rg uses backslashes on windows
   (if (eq system-type 'windows-nt)
       (setq dirs (mapcar (lambda (el) (replace-regexp-in-string
@@ -51,8 +54,9 @@
 
 ;;;###autoload
 (defun mvtn-search-full-text-rg (string dirs)
-  "Searches STRING using `rg' in DIRS. Falls back to
-`mvtn-search-full-text--grep' when `rg-executable' is not found."
+  "Search for STRING using `rg' in DIRS.
+Falls back to `mvtn-search-full-text--grep' when `rg-executable'
+is not found."
   (require 'rg)
   (if (not (executable-find rg-executable))
       (mvtn-search-full-text-grep string dirs)

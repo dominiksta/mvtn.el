@@ -15,11 +15,11 @@
   "Face used when hovering over mvtn links." :group 'mvtn)
 
 (defvar mvtn-link-map (make-sparse-keymap)
-  "The keymap when point is at an mvtn")
+  "The keymap when point is at an mvtn link.")
 
 (defvar mvtn--named-link-regexp
   "\\(\\^\\^\\)\\([[:digit:]]\\{8\\}-[[:digit:]]\\{6\\}\\)\\( \\)\\([^^]+\\)\\(\\^\\^\\)"
-  "Only matches 'named' mvtn links (meaning links with text after the id)")
+  "Only matches 'named' mvtn links (meaning links with text after the id).")
 
 (defvar mvtn-link-properties
   `(face mvtn-link-face mouse-face mvtn-link-mouse-face
@@ -41,16 +41,18 @@
 
 
 (defun mvtn-link-buttons-follow-mouse (event &optional promote-to-region)
-  "Follow an Mvtn link at the clicked position. Must be bound to
-a mouse button for EVENT to be passed in correctly."
+  "Follow an mvtn link at the clicked position.
+Must be bound to a mouse button for EVENT to be passed in correctly.
+PROMOTE-TO-REGION is passed to `mouse-set-point'."
   (interactive "e")
   (mouse-set-point event promote-to-region)
   (deactivate-mark)
   (mvtn-follow-link-at-point))
 
 (defun mvtn-link-buttons-fontify ()
-  "Make mvtn links in the current buffer clickable and fontify
-them with `mvtn-link-face' and `mvtn-link-mouse-face'."
+  "Make mvtn links in the current buffer clickable.
+Also fontify them with `mvtn-link-face' and
+`mvtn-link-mouse-face'."
   (font-lock-add-keywords nil mvtn-link-fl-keywords)
   (font-lock-flush))
 

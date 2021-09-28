@@ -13,11 +13,13 @@
 
 ;;;###autoload
 (defun mvtn-rename-current-file (name)
-  "Changes the title depending on the major-mode and renames the
-file. In org-mode, it uses \"#+TITLE:\" to look for the title. In
-markdown-mode, it looks for the first top-level headline (a line
-starting with \"# \") and in any other mode it looks for the
-first occurence of \"title: \"."
+  "Change the current files title to NAME.
+The title with in the file is changed depending on the
+`major-mode'.  Additionaly, the file is renamed.  In `org-mode',
+\"#+TITLE:\" is used to look for the title.  In `markdown-mode',
+it looks for the first top level headline (a line starting with
+\"# \") and in any other mode it looks for the first occurence of
+\"title: \"."
   (interactive "MNew filename: ")
   (let* ((old-orig (file-name-nondirectory (buffer-file-name (current-buffer))))
          (old-timestamp (substring old-orig 0 15))

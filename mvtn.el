@@ -48,44 +48,44 @@
            (:dir "meetings" :datetree t)
            (:dir "devlog" :datetree t)
            (:dir "static" :datetree nil))))
-  "The directory structure for all your mvtn notes. Structurally,
-this is a list of plists, where each element contains the
+  "The directory structure for all your mvtn notes.
+Structurally, this is a list of plists, where each element contains the
 following keys:
 
-| Key        | Description                                                |
-|------------+------------------------------------------------------------|
-| :dir       | A directory on the file system. This will not contain      |
-|            | any notes itself; rather it is a base directory            |
-|            | for the subdirectories specified in the :structure         |
-|            | key. It is intended to be used to separate between         |
-|            | categories of notes that for some reason need to be in     |
-|            | different places on the file system. One might for example |
-|            | want to store notes for their professional work on a       |
-|            | separate, encrypted drive. It is possible to specify drive |
-|            | letters on windows (e.g. 'd:/mvtn/').                      |
-| :name      | An abbreviated name of the directory. This helps to        |
-|            | improve the readabilty of a lot of listings and            |
-|            | searches. Can be any string of characters.                 |
-| :structure | As already mentioned, this key describes subdirectories    |
-|            | of :dir.                                                   |
+| Key        | Description                                                 |
+|------------+-------------------------------------------------------------|
+| :dir       | A directory on the file system.  This will not contain      |
+|            | any notes itself; rather it is a base directory             |
+|            | for the subdirectories specified in the :structure          |
+|            | key.  It is intended to be used to separate between         |
+|            | categories of notes that for some reason need to be in      |
+|            | different places on the file system.  One might for example |
+|            | want to store notes for their professional work on a        |
+|            | separate, encrypted drive.  It is possible to specify drive |
+|            | letters on windows (e.g. 'd:/mvtn/').                       |
+| :name      | An abbreviated name of the directory.  This helps to        |
+|            | improve the readabilty of a lot of listings and             |
+|            | searches.  Can be any string of characters.                 |
+| :structure | As already mentioned, this key describes subdirectories     |
+|            | of :dir.                                                    |
 
 Each element of list specified as the :structure key is itself
-again a list of plists. The required keys are listed in the table
-below.
+again a list of plists.  The required keys are listed in the
+table below.
 
 | Key       | Description                                                 |
 |-----------+-------------------------------------------------------------|
-| :dir      | A directory on the file system. It is relative to the       |
-|           | parent elements :dir. Intended for further                  |
+| :dir      | A directory on the file system.  It is relative to the      |
+|           | parent elements :dir.  Intended for further                 |
 |           | categorisation beyond the parent elements :dir key.         |
 |           | One might for example want to seperate a 'zettelkasten'     |
 |           | aka 'slip-box' from a 'devlog' or meeting notes.            |
 | :datetree | When this key is set to nil, notes will be created directly |
-|           | in the directory :dir. For long-term scalability, it is     |
+|           | in the directory :dir.  For long-term scalability, it is    |
 |           | however strongly recommended to set this to t in most       |
-|           | circumstances. When set to t, notes will be created in      |
+|           | circumstances.  When set to t, notes will be created in     |
 |           | subdirectories corresponding to the year the note is taken  |
-|           | in. When performing full-text searches or backlink          |
+|           | in.  When performing full-text searches or backlink         |
 |           | searches, mvtn can then omit notes older then               |
 |           | `mvtn-search-years', ensuring long-term scalability.        |
 |           | Setting :datetree to t should only be used for notes that   |
@@ -93,33 +93,32 @@ below.
 |           | regardless of their age.                                    |
 
 Example:
-((:dir \"~/mvtn/private\" :name \"prv\" :structure
+\((:dir \"~/mvtn/private\" :name \"prv\" :structure
        ((:dir \"fleeting\" :datetree t)
         (:dir \"zettelkasten\" :datetree t)
         (:dir \"devlog\" :datetree t)
         (:dir \"static\" :datetree nil)))
-(:dir \"~/mvtn/work\" :name \"wrk\" :structure
+\(:dir \"~/mvtn/work\" :name \"wrk\" :structure
       ((:dir \"fleeting\" :datetree t)
         (:dir \"meetings\" :datetree t)
         (:dir \"devlog\" :datetree t)
-        (:dir \"static\" :datetree nil))))
-"
+        (:dir \"static\" :datetree nil))))"
   :type 'string :group 'mvtn)
 
 (defcustom mvtn-excluded-directories
   '(".git" ".svn" "ltximg")
-  "A list containing all directory names that should be ignored
-when calling `mvtn-open-note', `mvtn-insert-link' and everything
-else affected by `mvtn-list-files-function'. These directories
-might contain linked pictures, LaTeX fragments or anything that
-is not a note (NaN)."
+  "A list of directories to ignore in note listings.
+This affects `mvtn-open-note', `mvtn-insert-link' and everything
+else using `mvtn-list-files-function'.  These directories might
+contain linked pictures, LaTeX fragments or anything that is not
+a note (NaN)."
   :type '(list :value-type string) :group 'mvtn)
 
 (defcustom mvtn-default-file-extension "org"
-  "The default extension of new mvtn notes. Any extension is
-allowed, as mvtn is not dependant on org-mode or markdown
-features, but it will be created and treated as a plaintext
-file."
+  "The default extension of new mvtn notes.
+Any extension is allowed, as mvtn is not dependant on `org-mode'
+or markdown features, but it will be created and treated as a
+plaintext file."
   :type 'string :group 'mvtn)
 
 (defcustom mvtn-file-extension-templates
@@ -136,9 +135,9 @@ date: {date}
 mvtn_original_title :: {title}
 mvtn_original_id :: {timestamp}
 ----------------------------------------------------------------------\n\n"))
-  "An associative list of templates for new files by file
-extension in mvtn. When an extension is not matched, the fallback
-associated with the empty string (\"\") is used.
+  "A list of templates for new notes by extension.
+When an extension is not matched, the fallback associated with
+the empty string (\"\") is used.
 
 Available substitutions:
 {title}    : The notes title
@@ -151,23 +150,26 @@ are required for some functions such as
   :type '(alist :value-type (group string)) :group 'mvtn)
 
 (defcustom mvtn-list-files-order 'desc
-  "Either 'asc or 'desc. Affects `mvtn-open-note',
+  "The order of items in everything calling `mvtn-list-files'.
+Either 'asc or 'desc.  Affects `mvtn-open-note',
 `mvtn-insert-link' and everything else calling
-`mvtn-list-files-function'."
+`mvtn-list-files'."
   :type 'symbol :group 'mvtn)
 
 (defcustom mvtn-search-years 3
-  "Search in mvtn is by default limited to the previous n
-years (including the current year). This is done for long-term
+  "The number of years many mvtn functions should consider by default.
+Search in mvtn is by default limited to the previous n
+years (including the current year).  This is done for long-term
 scalability."
   :type 'number :group 'mvtn)
 
 (defcustom mvtn-search-function 'mvtn-search-full-text-grep
-  "The function used in mvtn search commands
-`mvtn-search-full-text'. Its first argument should be the string
-to search for and the second argument a list of directories (as
-strings) to exclude from the search. By default,
-`mvtn-search-full-text-grep' is used."
+  "The function used in for `mvtn-search-full-text'.
+Its first argument should be the string to search for and the
+second argument a list of directories (as strings) to exclude
+from the search.  By default, `mvtn-search-full-text-grep' is
+used.  Other options are `mvtn-search-full-text-ag' and
+`mvtn-search-full-text-rg'."
   :type 'symbol :group 'mvtn)
 
 (defcustom mvtn-list-files-function
@@ -175,25 +177,27 @@ strings) to exclude from the search. By default,
            (executable-find find-program))
       'mvtn-list-files-function-find
     'mvtn-list-files-function-native)
-  "Function to traverse all directories in
-`mvtn-note-directories' excluding directories provided in
-`mvtn-excluded-directories'.
+  "The 'backend' function for `mvtn-list-files'.
+This affects `mvtn-open-note', `mvtn-insert-link' and everything
+else calling `mvtn-list-files'.
 
 Takes one optional argument SEARCH which allows to only list
 files matching this specific string
 
 RETURN a list of all files (notes).
 
-See `mvtn-list-files-function-native' and `mvtn-list-files-function-find'."
+See `mvtn-list-files-function-native' and
+`mvtn-list-files-function-find'."
   :type 'symbol :group 'mvtn)
 
 (defcustom mvtn-link-actions '((" :: " mvtn-link-action-search))
-  "Links may specify additional \"actions\" to be executed after
-following the link. These actions are defined in this alist. The
-car of each element of this list is interpreted as a
-seperator. If this seperator (regexp) matches a link, then
+  "A list of 'actions' that may be defined in a link.
+Links may specify additional actions to be executed after
+following the link.  These actions are defined in this alist.
+The car of each element of this list is interpreted as a
+seperator.  If this seperator (regexp) matches a link, then
 everything following the seperator will be passed to its
-associated function *after* following the link. (Mvtn goes
+associated function *after* following the link.  (Mvtn goes
 through this list top to bottom and only executes the first
 applicable action.)"
   :type '(alist :value-type (group symbol)) :group 'mvtn)
@@ -209,8 +213,9 @@ See `mvtn-cv-file' for further documentation."
   "A regexp matching valid mvtn links.")
 
 (defun mvtn-note-dir-for-name (name)
-  "Returns the :dir property of a note directory in
-`mvtn-note-directories' associated with the given NAME"
+  "RETURN the :dir property of a note directory.
+The note directory must be in `mvtn-note-directories' and is
+given by its NAME."
   (let ((candidates (seq-filter (lambda (el) (string-equal (plist-get el :name) name))
                                 mvtn-note-directories)))
     (cond
@@ -219,7 +224,9 @@ See `mvtn-cv-file' for further documentation."
      (t (plist-get (car candidates) :dir)))))
 
 (defun mvtn-short-note-dir-list (&optional datetreeonly)
-  "Get all shortened note directory names in `mvtn-note-directories'"
+  "Get all shortened note directory names in `mvtn-note-directories'.
+When DATETREEONLY is non-nil, returns only directories with
+:datetree set to t."
   (let ((result '()) (currstruct '()))
     (dolist (root-el mvtn-note-directories)
       (setq currstruct (plist-get root-el :structure))
@@ -231,16 +238,17 @@ See `mvtn-cv-file' for further documentation."
     result))
 
 (defun mvtn-expand-note-name (notename)
-  "Translates a path to a note shortened by the :name property of
-the note directory in `mvtn-note-directories' to the full path on
-the disk."
+  "Translates a 'short' note path to a full file system path.
+The 'short' path - given by NOTENAME - refers to a path shortened
+by the :name property of the note directory in
+`mvtn-note-directories'."
   (let ((split (split-string notename "/")))
     (concat (mvtn-note-dir-for-name (car split)) "/"
             (mapconcat 'identity (cdr split) "/"))))
 
 (defun mvtn-current-timestamp (accuracy)
-  "Returns a timestamp for use in generating mvtn filenames. ACCURACY is a
-symbol to define the format:
+  "RETURN a timestamp for use in generating mvtn filenames.
+ACCURACY is a symbol to define the format:
 - ACCURACY = 'day   : {year}{month}{day}
 - ACCURACY = 'hour  : {year}{month}{day}-{hour}
 - ACCURACY = 'minute: {year}{month}{day}-{hour}{minute}
@@ -257,9 +265,9 @@ symbol to define the format:
 
 
 (defun mvtn-timestamp-field (timestamp field)
-  "Returns a field in an mvtn timestamp like this:
-\"{year}{month}{day}[-{hour}[{minute}[{second}]]]\". FIELD may be
-one of 'year, 'month, 'day, 'hour, 'minute or 'second."
+  "RETURN a FIELD in an mvtn TIMESTAMP.
+FIELD may be one of 'year, 'month, 'day, 'hour, 'minute or
+'second."
   (declare (side-effect-free t))
   (cond ((eq field 'year) (substring timestamp 0 4))
         ((eq field 'month) (substring timestamp 4 6))
@@ -271,7 +279,7 @@ one of 'year, 'month, 'day, 'hour, 'minute or 'second."
 
 
 (defun mvtn-template-for-extension (extension)
-  "Return the template in `mvtn-file-extension-templates' for EXTENSION."
+  "RETURN the template in `mvtn-file-extension-templates' for EXTENSION."
   (declare (side-effect-free t))
   (or (cadr (assoc extension mvtn-file-extension-templates))
       (cadr (assoc "" mvtn-file-extension-templates))))
@@ -293,7 +301,8 @@ one of 'year, 'month, 'day, 'hour, 'minute or 'second."
 
 (defun mvtn-list-files-function-native (&optional search)
   "Native (elisp) implementation for `mvtn-list-files-function'.
-Does not show hidden files (prefixed with '.')"
+Does not show hidden files (prefixed with '.').  Result may
+optionally be limited to only items matching SEARCH."
   (mapcar (lambda (file-name)
             (substring file-name 2))
           (sort (directory-files-recursively
@@ -306,7 +315,8 @@ Does not show hidden files (prefixed with '.')"
 (defun mvtn-list-files-function-find (&optional search)
   "GNU/POSIX find implementation for `mvtn-list-files-function'.
 Requires GNU sort command to return persistent, name based sorting
-since find's sorting relies on creation time"
+since find's sorting relies on creation time.  Result may
+optionally be limited to only items matching SEARCH."
   (split-string
    (shell-command-to-string
     (format "%s * -type f %s -print %s | sort"
@@ -321,8 +331,11 @@ since find's sorting relies on creation time"
 
 
 (defun mvtn--directory-files (dir &optional prefix search)
-  "Checks if DIR exists, calls `mvtn-list-files-function' with
-`default-directory' set to DIR and prefixes all results with PREFIX."
+  "Helper function for running `mvtn-list-files-function'.
+Checks if DIR exists, calls `mvtn-list-files-function' with
+`default-directory' set to DIR and prefixes all results with
+PREFIX.  Result may optionally be limited to only items matching
+SEARCH."
   (if (file-exists-p dir)
       (let ((default-directory dir))
         (if prefix
@@ -332,8 +345,8 @@ since find's sorting relies on creation time"
     nil))
 
 (defun mvtn-list-files (&optional all)
-  "Return a list of all files in `mvtn-note-directories'
-recursively. Limit to `mvtn-search-years' unless ALL is non-nil."
+  "Return a list of all notes in `mvtn-note-directories'.
+Limit to `mvtn-search-years' unless ALL is non-nil."
   (let* ((files-datetree '()) (files-other '())
          (current-year (string-to-number (format-time-string "%Y"))))
     ;; datetree first
@@ -380,8 +393,9 @@ recursively. Limit to `mvtn-search-years' unless ALL is non-nil."
 
 
 (defun mvtn-title-to-acceptable-file-name (title)
-  "Returns TITLE except all characters not allowed on either NTFS
-or EXT4 will be replaced by an underscore ('_')
+  "RETURN a reasonably sanitized form of TITLE.
+All characters not allowed on either NTFS or EXT4 will be
+replaced by an underscore ('_')
 
 Specifically:
 - / is not allowed on Linux
@@ -400,11 +414,12 @@ either nil or non-nil."
            extension (if encrypt ".gpg" ""))))
 
 (defun mvtn-touch-new-file (dir timestamp title extension tags &optional encrypt)
-  "Use `mvtn-generate-file-name' to create a new file in DIR
-where DIR is one of `mvtn-short-note-dir-list'. If DIR is
+  "Use `mvtn-generate-file-name' to create a new file in DIR.
+DIR must be one of `mvtn-short-note-dir-list'.  If DIR is
 configured as a datetree, the file is created in the directory
-for the current year. RETURN the full name of the newly created
-file."
+for the current year.  RETURN the full name of the newly created
+file.  TIMESTAMP, TITLE, EXTENSION, TAGS and ENCRYPT will all be
+passed to `mvtn-generate-file-name'."
   (let* ((file-name (mvtn-generate-file-name timestamp title extension tags encrypt))
          (full-dir (concat (mvtn-expand-note-name dir)
                            (if (member dir (mvtn-short-note-dir-list t))
@@ -415,10 +430,12 @@ file."
     (substring-no-properties (concat full-dir "/" file-name))))
 
 (defun mvtn-create-new-file (dir title tags &optional encrypt no-template)
-  "Use `mvtn-touch-new-file' to create a new file, insert a
-template according to `mvtn-file-extension-templates' and open
-the buffer to the resulting file. DIR should be one of
-`mvtn-short-note-dir-list'. RETURN the buffer to the new file."
+  "Use `mvtn-touch-new-file' to create a new file.
+After file creation, a template is inserted according to
+`mvtn-file-extension-templates' (unless NO-TEMPLATE is non-nil)
+and a buffer to the resulting file is opened.  DIR, TITLE, TAGS
+and ENCRYPT will all be passed to `mvtn-touch-new-file'.  RETURN
+the buffer to the new file."
   (let* ((timestamp (mvtn-current-timestamp 'second))
          (file-name (mvtn-touch-new-file
                      dir timestamp title mvtn-default-file-extension tags encrypt))
@@ -435,9 +452,9 @@ the buffer to the resulting file. DIR should be one of
 
 
 (defun mvtn--extract-note-identity (notename &optional filename)
-  "Extracts the timestamp from NOTENAME (any string representation
-of a note's name). When FILENAME is given, also extracts the
-filename without filextension and tags"
+  "Extracts the timestamp from NOTENAME.
+When FILENAME is given, also extracts the filename without
+extension and tags"
   (unless (string-match (if filename (concat mvtn--id-regexp ".*") mvtn--id-regexp)
                         notename)
     (error (concat "Failed to extract note identity. "
@@ -454,19 +471,19 @@ filename without filextension and tags"
 
 
 (defun mvtn-link-targets (link)
-  "Determine the target file of the given LINK. The only relevant
-part of a link for determining this target is the id aka
-timestamp. Other parts of the link are ignored. This is to allow
-renaming of files even without automated tooling. As long as the
-timestamp of the target file is untouched, links to it will not
-break.
+  "Determine the target file of the given LINK.
+The only relevant part of a link for determining this target is
+the id aka timestamp.  Other parts of the link are ignored.  This
+is to allow renaming of files even without automated tooling.  As
+long as the timestamp of the target file is untouched, links to
+it will not break.
 
 Returns a *list* of targets matching the timestamp in order to
 catch synchronisation conflicts of some tools such as nextcloud
 or syncthing.
 
 Example:
-(mvtn-link-targets \"^^20210110-000548 ABCDEFGBLABLA.asd^^\")
+\(mvtn-link-targets \"^^20210110-000548 ABCDEFGBLABLA.asd^^\")
 -> \"prv/devlog/2021/20210110-000548 Branching in Subversion.org\""
   (when (not (string-match-p mvtn--link-regexp link)) (error "Invalid mvtn link"))
   (let* ((timestamp (mvtn--extract-note-identity link))
@@ -498,8 +515,8 @@ Example:
 
 
 (defun mvtn-follow-link (link)
-  "Follows the mvtn link LINK. If multiple matches exists,
-prompts for disambiguation."
+  "Follows the mvtn link LINK.
+If multiple matches exists,prompts for disambiguation."
   (when (not (string-match-p (format "^%s$" mvtn--link-regexp) link))
     (error "Not a valid mvtn link: %s" link))
   (let* ((matches (mvtn-link-targets link))
@@ -516,9 +533,9 @@ prompts for disambiguation."
 
 
 (defun mvtn-link-action-search (search)
-  "Go to the beginning of the first occurence of SEARCH in
-current buffer and highlight the match with `pulse', if
-available. See `mvtn-link-actions'."
+  "Go to the first occurence of SEARCH in current buffer.
+Also highlight the match with `pulse', if available.  See
+`mvtn-link-actions'."
   (goto-char (point-min)) (search-forward search)
   (goto-char (match-beginning 0))
   (require 'pulse nil nil)
@@ -527,7 +544,7 @@ available. See `mvtn-link-actions'."
 
 
 (defun mvtn-search-full-text-grep (string dirs)
-  "Searches STRING using `grep' in DIRS."
+  "Search for STRING using `grep' in DIRS."
   ;; `grep-use-null-device' is only useful when -H is not an option and only one
   ;; file is searched. Although -H is apparently not posix-compliant, it is
   ;; included in both BSD and GNU grep. I therefore hereby declare that this
@@ -543,10 +560,12 @@ available. See `mvtn-link-actions'."
 
 
 (defun mvtn--search-dirs (&optional all)
-  "Return a list of all directories in `mvtn-note-directories'
-that should be searched in `mvtn-search-full-text'. Paths for the
-subdirectories of the first element in `mvtn-note-directories'
-are returned as relative paths."
+  "RETURN a list of all directories for search.
+See `mvtn-search-years' and `mvtn-excluded-directories' for why
+this is not necessarily every directory in
+`mvtn-note-directories'.  Paths for the subdirectories of the
+first element in `mvtn-note-directories' are returned as relative
+paths.  When ALL is non-nil, `mvtn-search-years' is ignored."
   (let ((result '())
         (current-year (string-to-number (format-time-string "%Y")))
         (mvtn-search-years (if all 1000 mvtn-search-years)))
@@ -579,9 +598,8 @@ are returned as relative paths."
 
 ;;;###autoload
 (defun mvtn-search-full-text (string &optional all)
-  "Search for STRING in `mvtn-note-directories', using
-`mvtn-search-function', excluding directories according to
-`mvtn-search-years'."
+  "Search for STRING in `mvtn-note-directories'.
+If ALL is non-nil, `mvtn-search-years' will be ignored."
   (interactive "MSearch: \nP")
   (let* ((default-directory (plist-get (car mvtn-note-directories) :dir)))
     (if all
@@ -591,14 +609,14 @@ are returned as relative paths."
 
 ;;;###autoload
 (defun mvtn-search-backlinks (&optional all file)
-  "Uses `mvtn-search-full-text' to look for backlinks to the
-given FILE (defaults to the file opened in the current
-buffer). If ALL is non-nil (can be set through a universal
-argument), then `mvtn-search-years' is ignored."
+  "Search for backlinks to the given FILE.
+FILE defaults to the file opened in the current buffer.  If ALL
+is non-nil (can be set through a universal argument), then
+`mvtn-search-years' is ignored."
   (interactive "P")
   (when (not file) (setq file (file-name-nondirectory buffer-file-name)))
   (when (not (string-match-p (concat "^" mvtn--id-regexp ".*") file))
-    (error "Invalid mvtn filename. Cancelled backlink search."))
+    (error "Invalid mvtn filename.  Cancelled backlink search"))
   (let ((timestamp (mvtn--extract-note-identity file)))
     (mvtn-search-full-text (concat "\\^\\^" timestamp) all)))
 
@@ -620,7 +638,7 @@ argument), then `mvtn-search-years' is ignored."
 
 ;;;###autoload
 (defun mvtn-insert-link ()
-  "Prompt for a note to insert a link to. Supports completion."
+  "Prompt for a note to insert a link to."
   (interactive)
   (let* ((answer (completing-read "Insert link to: " (mvtn-list-files)))
          (link (mvtn--extract-note-identity answer t)))
@@ -631,8 +649,8 @@ argument), then `mvtn-search-years' is ignored."
 
 ;;;###autoload
 (defun mvtn-jump-current-year-directory ()
-  "Jump to a directory in `mvtn-note-directories' in
-`dired'. Opens the directory for the current year if a directory
+  "Jump to a directory in `mvtn-note-directories'.
+Opens the directory for the current year if a directory
 configured as a datetree is selected."
   (interactive)
   (let ((choice (completing-read "Directory: " (mvtn-short-note-dir-list))))
@@ -649,9 +667,9 @@ configured as a datetree is selected."
 
 ;;;###autoload
 (defun mvtn-new-note (&optional encrypt)
-  "Creates a new note using `mvtn-create-new-file'. Switches to
-the buffer of the new note. If ENCRYPT is non-nil, 'epa.el' is
-used to encrypt the file with gpg."
+  "Create a new note using `mvtn-create-new-file'.
+Switch to the buffer of the new note.  If ENCRYPT is non-nil,
+'epa.el' is used to encrypt the file with gpg."
   (interactive "P")
   (let ((dir (completing-read "Directory: " (mvtn-short-note-dir-list)))
         (title (read-from-minibuffer "Title: "))
@@ -662,7 +680,8 @@ used to encrypt the file with gpg."
 
 ;;;###autoload
 (defun mvtn-open-note (&optional all)
-  "Opens a note from `mvtn-note-directories'. Supports completion."
+  "Open a note from `mvtn-note-directories'.
+If ALL is non-nil, ignore `mvtn-search-years'."
   (interactive "P")
   (let* ((answer (completing-read "Open note: " (mvtn-list-files all))))
     (find-file (mvtn-expand-note-name answer))))
@@ -684,7 +703,7 @@ used to encrypt the file with gpg."
   nil " mvtn" mvtn-minor-mode-map)
 
 (defun maybe-enable-mvtn-minor-mode ()
-  "Enable `mvtn-minor-mode' when file is in `mvtn-note-directories'"
+  "Enable `mvtn-minor-mode' when file is in `mvtn-note-directories'."
   (condition-case nil
       (let* ((note-dirs (mapcar 'expand-file-name
                                 (mapcar 'mvtn-expand-note-name

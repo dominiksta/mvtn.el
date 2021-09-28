@@ -16,8 +16,8 @@
 ;; ----------------------------------------------------------------------
 
 (defun mvtn-list-files-with-tags (tags &optional all)
-  "Like `mvtn-list-files' except filter out all notes which do
-not contain any of the specified TAGS."
+  "List all notes with tags matching TAGS.
+Ignore `mvtn-search-years' if ALL is non-nil."
   (let ((files (mvtn-list-files all)))
     (dolist (tag (split-string tags))
       (setq files (seq-filter
@@ -86,8 +86,9 @@ or try entering their tags again."
 
 ;;;###autoload
 (defun mvtn-tag-file-list (tags &optional all)
-  "Display a list of all files matching all specified TAGS. With
-a prefix argument, ignore `mvtn-search-years'."
+  "Display a list of all files matching all specified TAGS.
+With a prefix argument (or setting ALL to non-nil), ignore
+`mvtn-search-years'."
   (interactive "MTags: \nP")
   (let ((buffer (get-buffer-create
                  (concat "*Mvtn Tag File List <" tags ">"
@@ -101,8 +102,7 @@ a prefix argument, ignore `mvtn-search-years'."
 
 (define-derived-mode mvtn-tag-file-list-mode tabulated-list-mode
   "Mvtn Tag File List"
-  "The major-mode for `mvtn-tag-file-list'. Should likely not be
-called on its own."
+  "The major-mode for `mvtn-tag-file-list'."
   (setq tabulated-list-format [("Title" 78 t) ("ID" 15 t)])
   (setq tabulated-list-sort-key (cons "ID" nil))
   (add-hook 'tabulated-list-revert-hook 'mvtn--tag-file-list-refresh nil t))
@@ -112,8 +112,7 @@ called on its own."
   'mvtn-tag-file-list-open-keep-focus)
 
 (defun mvtn--tag-file-list-refresh ()
-  "Called when an `mvtn-tag-file-list-mode' buffer is reverted or
-created."
+  "Refresh the contents of an an `mvtn-tag-file-list-mode' buffer."
   (let ((tags (save-match-data
                 (substring (buffer-name)
                            (1+ (string-match "<" (buffer-name)))
@@ -134,16 +133,15 @@ created."
     (tabulated-list-init-header)))
 
 (defun mvtn--tag-file-list-action (button)
-  "The action taken when a note in an `mvtn-tag-file-list' buffer
-is clicked."
+  "The action taken when clicking a note in `mvtn-tag-file-list-mode'.
+BUTTON will refer to the button clicked."
   (find-file
    (concat (mvtn-expand-note-name (button-get button 'filename)))))
 
 (defun mvtn-tag-file-list-open (&optional keep-focus)
-  "Open up the file under point in another window in a buffer
-produced by `mvtn-tag-file-list'. If KEEP-FOCUS is non-nil, the
-focus is kept in the `mvtn-tag-file-list-mode' buffer instead of
-the opened file."
+  "Open the note under point in another window in `mvtn-tag-file-list-mode'.
+If KEEP-FOCUS is non-nil, the focus is kept in the
+`mvtn-tag-file-list-mode' buffer instead of the opened file."
   (interactive "P")
   (let ((filename (mvtn-expand-note-name
                    (plist-get (cdr (elt (tabulated-list-get-entry (point)) 0))
@@ -164,17 +162,18 @@ the opened file."
 (defvar org-agenda-files)
 
 (defvar mvtn-org-agenda-tag "project"
-  "All files with this tag will be added to `org-agenda-files'
-when `mvtn-org-agenda-files-populate' is called.")
+  "See `mvtn-org-agenda-files-populate'.
+All files with this tag will be added to `org-agenda-files' when
+`mvtn-org-agenda-files-populate' is called.")
 
 (defvar mvtn-org-agenda--initial-files nil
-  "Stores the initial value of `org-agenda-files' before it is
-modified through `mvtn-org-agenda-files-populate' to include all
-notes tagged with `mvtn-org-agenda-tag'.")
+  "Stores the initial value of `org-agenda-files'.
+The initial value is considered the value before its first
+modification through `mvtn-org-agenda-files-populate' to include
+all notes tagged with `mvtn-org-agenda-tag'.")
 
 (defun mvtn-org-agenda-files-populate ()
-  "Adds all mvtn notes tagged with `mvtn-org-agenda-tag' to
-`org-agenda-files'."
+  "Add all notes tagged with `mvtn-org-agenda-tag' to `org-agenda-files'."
   (interactive)
   (when (not mvtn-org-agenda--initial-files)
     (setq mvtn-org-agenda--initial-files org-agenda-files))
@@ -186,9 +185,11 @@ notes tagged with `mvtn-org-agenda-tag'.")
 
 ;;;###autoload
 (defun mvtn-org-agenda (&optional arg org-keys restriction)
-  "Like `org-agenda', except it calls
-`mvtn-org-agenda-files-populate' before, thereby adding all notes
-tagged with `mvtn-org-agenda-tag' to `org-agenda-files'."
+  "A 'replacement' for `org-agenda'.
+It just calls `org-agenda' after calling
+`mvtn-org-agenda-files-populate', thereby adding all notes tagged
+with `mvtn-org-agenda-tag' to `org-agenda-files'.
+ARG, ORG-KEYS and RESTRICTION are passed to `org-agenda'."
   (interactive)
   (mvtn-org-agenda-files-populate)
   (funcall-interactively 'org-agenda arg org-keys restriction))
