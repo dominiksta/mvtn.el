@@ -429,28 +429,23 @@ passed to `mvtn-generate-file-name'."
     (write-region "" nil file-name)
     (substring-no-properties (concat full-dir "/" file-name))))
 
-(defun mvtn-create-new-file (timestamp dir title tags &optional encrypt no-template)
+(defun mvtn-create-new-file (timestamp dir title tags content &optional encrypt)
   "Use `mvtn-touch-new-file' to create a new file.
-After file creation, a template is inserted according to
-`mvtn-file-extension-templates' (unless NO-TEMPLATE is non-nil)
-and a buffer to the resulting file is opened.  TIMESTAMP, DIR,
-TITLE, TAGS and ENCRYPT will all be passed to
-`mvtn-touch-new-file'.  RETURN the buffer to the new file.  When
-{point} is found in the buffer, place point there before
-returning."
+After file creation, CONTENT is inserted and a buffer to the
+resulting file is opened.  TIMESTAMP, DIR, TITLE, TAGS and
+ENCRYPT will all be passed to `mvtn-touch-new-file'.  RETURN the
+buffer to the new file.  When {point} is found in the buffer,
+place point there before returning."
   (let* ((file-name (mvtn-touch-new-file
                      dir timestamp title mvtn-default-file-extension tags encrypt))
-         (template (mvtn-substitute-template
-                    (mvtn-template-for-extension mvtn-default-file-extension)
-                    title (format-time-string "%Y-%m-%d") timestamp))
          (buf (find-file-noselect file-name)))
-    (when (not no-template) (with-current-buffer buf (insert template) (save-buffer)))
+    (with-current-buffer buf (insert content) (save-buffer))
     ;; When creating an encrypting a file with 'epa.el', the user is prompted
     ;; for the gpg key to use everytime the buffer is saved. Once the file is
     ;; closed and reopened though, epa seems to remember the key to use.
     (when encrypt (kill-buffer buf) (setq buf (find-file-noselect file-name)))
-    ;; When {point} is found in template, place point in buffer there
-    (when (string-match-p "{point}" template)
+    ;; When {point} is found in content, place point in buffer there
+    (when (string-match-p "{point}" content)
       (with-current-buffer buf (goto-char (point-min)) (search-forward "{point}")
                            (backward-delete-char 7) (insert " ") (save-buffer)))
     buf))
@@ -676,12 +671,15 @@ configured as a datetree is selected."
 Switch to the buffer of the new note.  If ENCRYPT is non-nil,
 'epa.el' is used to encrypt the file with gpg."
   (interactive "P")
-  (let ((dir (completing-read "Directory: " (mvtn-short-note-dir-list)))
-        (title (read-from-minibuffer "Title: "))
-        (tags (if mvtn-cv-enable
-                  (mvtn-cv-prompt-for-tags) (mvtn-prompt-for-tags))))
-    (switch-to-buffer (mvtn-create-new-file (mvtn-current-timestamp 'second)
-                                            dir title tags encrypt))))
+  (let* ((dir (completing-read "Directory: " (mvtn-short-note-dir-list)))
+         (timestamp (mvtn-current-timestamp 'second))
+         (title (read-from-minibuffer "Title: "))
+         (content (mvtn-substitute-template
+                   (mvtn-template-for-extension mvtn-default-file-extension)
+                   title (format-time-string "%Y-%m-%d") timestamp))
+         (tags (if mvtn-cv-enable
+                   (mvtn-cv-prompt-for-tags) (mvtn-prompt-for-tags))))
+    (switch-to-buffer (mvtn-create-new-file timestamp dir title tags content encrypt))))
 
 
 ;;;###autoload
