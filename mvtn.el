@@ -286,7 +286,8 @@ FIELD may be one of 'year, 'month, 'day, 'hour, 'minute or
 
 
 (defun mvtn-substitute-template (template-string title date timestamp)
-  "Substitute {title} for TITLE and {date} for DATE in TEMPLATE-STRING."
+  "Substitute {title} for TITLE, {date} for DATE and {timestamp} for {TIMESTAMP}
+in TEMPLATE-STRING."
   (declare (side-effect-free t))
   ;; TODO There has to be a more elegant way of doing this:
   (let* ((title-without-backslash (replace-regexp-in-string "\\\\" "\\\\\\\\" title))
@@ -303,13 +304,12 @@ FIELD may be one of 'year, 'month, 'day, 'hour, 'minute or
   "Native (elisp) implementation for `mvtn-list-files-function'.
 Does not show hidden files (prefixed with '.').  Result may
 optionally be limited to only items matching SEARCH."
-  (mapcar (lambda (file-name)
-            (substring file-name 2))
+  (mapcar (lambda (file-name) (substring file-name 2))
           (sort (directory-files-recursively
                  "." (if search (format "^[^\\.]*%s" search) "^[^\\.]") nil
-                 (lambda (dir-name)
-                   (not (member (file-name-nondirectory dir-name)
-                                mvtn-excluded-directories)))) 'string<)))
+                 (lambda (dir-name) (not (member (file-name-nondirectory dir-name)
+                                            mvtn-excluded-directories))))
+                'string<)))
 
 
 (defun mvtn-list-files-function-find (&optional search)
@@ -319,10 +319,8 @@ since find's sorting relies on creation time.  Result may
 optionally be limited to only items matching SEARCH."
   (split-string
    (shell-command-to-string
-    (format "%s * -type f %s -print %s | sort"
-            find-program
-            (if search
-                (format "-name '*%s*'" search) "")
+    (format "%s * -type f %s -print %s | sort" find-program
+            (if search (format "-name '*%s*'" search) "")
             (if mvtn-excluded-directories
                 (format "-o -path '*%s' -type d -prune"
                         (mapconcat 'identity mvtn-excluded-directories
@@ -338,9 +336,8 @@ PREFIX.  Result may optionally be limited to only items matching
 SEARCH."
   (if (file-exists-p dir)
       (let ((default-directory dir))
-        (if prefix
-            (mapcar (lambda (el) (format "%s/%s" prefix el))
-                    (funcall mvtn-list-files-function search))
+        (if prefix (mapcar (lambda (el) (format "%s/%s" prefix el))
+                           (funcall mvtn-list-files-function search))
           (funcall mvtn-list-files-function search)))
     nil))
 
