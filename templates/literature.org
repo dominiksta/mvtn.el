@@ -1,0 +1,18 @@
+#+TITLE: {title}
+#+DATE: {date}
+# mvtn_original_title :: {title}
+# mvtn_original_id :: {timestamp}
+
+* Metadata
+
+- Author:{point}
+- Title: 
+- DOI/ISBN/URL: 
+- Date: 
+
+Cites:
+  
+* Thoughts
+
+* Annotations
+

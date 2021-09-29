@@ -701,6 +701,7 @@ If ALL is non-nil, ignore `mvtn-search-years'."
 (define-key mvtn-minor-mode-map (kbd "C-c C-. r") 'mvtn-rename-current-file)
 (defvar mvtn-global-map (make-sparse-keymap))
 (define-key mvtn-global-map (kbd "n") 'mvtn-new-note)
+(define-key mvtn-global-map (kbd "N") 'mvtn-new-note-from-template)
 (define-key mvtn-global-map (kbd "o") 'mvtn-open-note)
 (define-key mvtn-global-map (kbd "s") 'mvtn-search-full-text)
 (define-key mvtn-global-map (kbd "j") 'mvtn-jump-current-year-directory)

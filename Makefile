@@ -7,6 +7,7 @@ EL      = mvtn.el \
           mvtn-file-helpers.el \
           mvtn-link-buttons.el \
           mvtn-tag-addons.el \
+          mvtn-templates.el \
           mvtn-ag.el \
           mvtn-rg.el
 TEST    = test/mvtn-test.el \
@@ -41,6 +42,7 @@ mvtn-file-helpers.elc: mvtn.el
 mvtn-ag.elc: mvtn.el
 mvtn-rg.elc: mvtn.el
 mvtn-link-buttons.el: mvtn.el
+mvtn-templates.el: mvtn.el mvtn-file-helpers.el
 
 
 # ----------------------------------------------------------------------

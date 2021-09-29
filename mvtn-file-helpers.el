@@ -11,6 +11,10 @@
 
 (declare-function dired-get-filename "ext:dired")
 
+(defun mvtn-get-string-from-file (filepath)
+  "RETURN FILEPATH's file content."
+  (with-temp-buffer (insert-file-contents filepath) (buffer-string)))
+
 ;;;###autoload
 (defun mvtn-rename-current-file (name)
   "Change the current files title to NAME.

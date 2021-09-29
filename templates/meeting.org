@@ -1,0 +1,13 @@
+#+TITLE: {title}
+#+DATE: {date}
+# mvtn_original_title :: {title}
+# mvtn_original_id :: {timestamp}
+
+Location:{point}
+Participants:
+- 
+
+* Discussed
+
+* My Thoughts
+

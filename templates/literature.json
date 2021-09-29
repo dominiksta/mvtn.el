@@ -1,0 +1,14 @@
+{
+    "meta": {
+        "format": "mvtn-template",
+        "version": 1
+    },
+    "file": {
+        "short_note_dir": "prv/fleeting",
+        "title": "",
+        "title_prompt": true,
+        "tags": "literature",
+        "tags_prompt": true,
+        "template_file": "literature.org"
+    }
+}
