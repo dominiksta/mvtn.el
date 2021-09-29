@@ -63,22 +63,24 @@ description after two colons (:)."
           (split-string (mvtn--get-string-from-file mvtn-cv-file) "\n")))
 
 ;;;###autoload
-(defun mvtn-cv-prompt-for-tags ()
+(defun mvtn-cv-prompt-for-tags (initial)
   "Prompts for a selection of `mvtn-cv-read-tags-from-file'.
 When a tag is not in the controlled vocabulary, the user is asked
 wether they want to continue with the potentially incorrect tags
-or try entering their tags again."
+or try entering their tags again.  INITIAL will already be
+inserted in the minibuffer."
   (when (not (file-exists-p mvtn-cv-file))
     (error "%s does not exist.  Please create it" mvtn-cv-file))
   (let* ((cv (mvtn-cv-read-tags-from-file))
-         (answer (completing-read-multiple "Tags (comma-separated): " cv))
+         (answer (completing-read-multiple "Tags (comma-separated): " cv
+                                           nil nil initial))
          (continue t))
     (dolist (el answer)
       (if (and (not (member el cv))
                (not (y-or-n-p (concat "'" el "' is not in your controlled vocabulary. "
                                       "Continue anyway?"))))
           (setq continue nil)))
-    (if continue answer (mvtn-cv-prompt-for-tags))))
+    (if continue answer (mvtn-cv-prompt-for-tags initial))))
 
 ;; ----------------------------------------------------------------------
 ;; `mvtn-tag-file-list'

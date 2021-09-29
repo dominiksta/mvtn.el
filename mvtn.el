@@ -660,9 +660,10 @@ configured as a datetree is selected."
     (if (not (file-exists-p choice)) (mkdir choice t))
     (dired choice)))
 
-(defun mvtn-prompt-for-tags ()
-  "Prompt for a selection of comma-separated tags."
-  (let ((answer (read-from-minibuffer "Tags (comma-seperated): ")))
+(defun mvtn-prompt-for-tags (initial)
+  "Prompt for a selection of comma-separated tags.
+INITIAL will already be inserted in the minibuffer."
+  (let ((answer (read-from-minibuffer "Tags (comma-seperated): " initial)))
     (if (eq (length answer) 0) nil (split-string answer ","))))
 
 ;;;###autoload
@@ -678,7 +679,7 @@ Switch to the buffer of the new note.  If ENCRYPT is non-nil,
                    (mvtn-template-for-extension mvtn-default-file-extension)
                    title (format-time-string "%Y-%m-%d") timestamp))
          (tags (if mvtn-cv-enable
-                   (mvtn-cv-prompt-for-tags) (mvtn-prompt-for-tags))))
+                   (mvtn-cv-prompt-for-tags "") (mvtn-prompt-for-tags ""))))
     (switch-to-buffer (mvtn-create-new-file timestamp dir title tags content encrypt))))
 
 
