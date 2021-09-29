@@ -433,9 +433,11 @@ passed to `mvtn-generate-file-name'."
   "Use `mvtn-touch-new-file' to create a new file.
 After file creation, a template is inserted according to
 `mvtn-file-extension-templates' (unless NO-TEMPLATE is non-nil)
-and a buffer to the resulting file is opened.  DIR, TITLE, TAGS
-and ENCRYPT will all be passed to `mvtn-touch-new-file'.  RETURN
-the buffer to the new file."
+and a buffer to the resulting file is opened.  TIMESTAMP, DIR,
+TITLE, TAGS and ENCRYPT will all be passed to
+`mvtn-touch-new-file'.  RETURN the buffer to the new file.  When
+{point} is found in the buffer, place point there before
+returning."
   (let* ((file-name (mvtn-touch-new-file
                      dir timestamp title mvtn-default-file-extension tags encrypt))
          (template (mvtn-substitute-template
@@ -447,6 +449,10 @@ the buffer to the new file."
     ;; for the gpg key to use everytime the buffer is saved. Once the file is
     ;; closed and reopened though, epa seems to remember the key to use.
     (when encrypt (kill-buffer buf) (setq buf (find-file-noselect file-name)))
+    ;; When {point} is found in template, place point in buffer there
+    (when (string-match-p "{point}" template)
+      (with-current-buffer buf (goto-char (point-min)) (search-forward "{point}")
+                           (backward-delete-char 7) (insert " ") (save-buffer)))
     buf))
 
 
