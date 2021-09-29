@@ -429,7 +429,8 @@ passed to `mvtn-generate-file-name'."
     (write-region "" nil file-name)
     (substring-no-properties (concat full-dir "/" file-name))))
 
-(defun mvtn-create-new-file (timestamp dir title tags content &optional encrypt)
+(defun mvtn-create-new-file (timestamp dir title extension tags content
+                                       &optional encrypt)
   "Use `mvtn-touch-new-file' to create a new file.
 After file creation, CONTENT is inserted and a buffer to the
 resulting file is opened.  TIMESTAMP, DIR, TITLE, TAGS and
@@ -437,7 +438,7 @@ ENCRYPT will all be passed to `mvtn-touch-new-file'.  RETURN the
 buffer to the new file.  When {point} is found in the buffer,
 place point there before returning."
   (let* ((file-name (mvtn-touch-new-file
-                     dir timestamp title mvtn-default-file-extension tags encrypt))
+                     dir timestamp title extension tags encrypt))
          (buf (find-file-noselect file-name)))
     (with-current-buffer buf (insert content) (save-buffer))
     ;; When creating an encrypting a file with 'epa.el', the user is prompted
@@ -680,7 +681,9 @@ Switch to the buffer of the new note.  If ENCRYPT is non-nil,
                    title (format-time-string "%Y-%m-%d") timestamp))
          (tags (if mvtn-cv-enable
                    (mvtn-cv-prompt-for-tags "") (mvtn-prompt-for-tags ""))))
-    (switch-to-buffer (mvtn-create-new-file timestamp dir title tags content encrypt))))
+    (switch-to-buffer
+     (mvtn-create-new-file timestamp dir title mvtn-default-file-extension tags
+                           content encrypt))))
 
 
 ;;;###autoload
