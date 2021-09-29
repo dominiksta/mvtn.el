@@ -429,15 +429,14 @@ passed to `mvtn-generate-file-name'."
     (write-region "" nil file-name)
     (substring-no-properties (concat full-dir "/" file-name))))
 
-(defun mvtn-create-new-file (dir title tags &optional encrypt no-template)
+(defun mvtn-create-new-file (timestamp dir title tags &optional encrypt no-template)
   "Use `mvtn-touch-new-file' to create a new file.
 After file creation, a template is inserted according to
 `mvtn-file-extension-templates' (unless NO-TEMPLATE is non-nil)
 and a buffer to the resulting file is opened.  DIR, TITLE, TAGS
 and ENCRYPT will all be passed to `mvtn-touch-new-file'.  RETURN
 the buffer to the new file."
-  (let* ((timestamp (mvtn-current-timestamp 'second))
-         (file-name (mvtn-touch-new-file
+  (let* ((file-name (mvtn-touch-new-file
                      dir timestamp title mvtn-default-file-extension tags encrypt))
          (template (mvtn-substitute-template
                     (mvtn-template-for-extension mvtn-default-file-extension)
@@ -675,7 +674,8 @@ Switch to the buffer of the new note.  If ENCRYPT is non-nil,
         (title (read-from-minibuffer "Title: "))
         (tags (if mvtn-cv-enable
                   (mvtn-cv-prompt-for-tags) (mvtn-prompt-for-tags))))
-    (switch-to-buffer (mvtn-create-new-file dir title tags encrypt))))
+    (switch-to-buffer (mvtn-create-new-file (mvtn-current-timestamp 'second)
+                                            dir title tags encrypt))))
 
 
 ;;;###autoload
