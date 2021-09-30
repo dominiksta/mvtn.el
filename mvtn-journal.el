@@ -80,17 +80,18 @@ and ENCRYPT is non-nil, the new note will be encrypted with gpg."
            title date id)
           encrypt))))))
 
-(defun mvtn-journal-new-entry-for-time (time &optional encrypt)
-  "Insert a new entry at TIME in the daily note for TIME.
+(defun mvtn-journal-new-entry-for-time (time text &optional encrypt)
+  "Insert TEXT at a new entry at TIME in the daily note for TIME.
 If ENCRYPT is specified and the daily note for TIME does not yet
 exist, if will be encrypted with gpg."
   (mvtn-journal-open-daily-for-time time encrypt)
   (goto-char (point-max))
-  (insert (concat "\n")
+  (insert "\n"
           (format-time-string (mvtn-template-for-extension
                                mvtn-journal-default-file-extension
                                mvtn-journal-entry-file-extension-templates)
-                         time))
+                              time)
+          text)
   (when (fboundp 'evil-append) (evil-append 0)))
 
 ;;;###autoload
@@ -99,7 +100,7 @@ exist, if will be encrypted with gpg."
 If ENCRYPT is specified and the daily note for TIME does not yet
 exist, if will be encrypted with gpg."
   (interactive "P")
-  (mvtn-journal-new-entry-for-time (current-time) encrypt))
+  (mvtn-journal-new-entry-for-time (current-time) "" encrypt))
 
 ;;;###autoload
 (defun mvtn-journal-new-quick-entry (text &optional encrypt)
@@ -110,8 +111,7 @@ foreground.  If ENCRYPT is specified and the daily note for TIME
 does not yet exist, if will be encrypted with gpg."
   (interactive "MJournal Entry: \nP")
   (save-window-excursion
-    (mvtn-journal-new-entry-for-time (current-time) encrypt)
-    (insert text)
+    (mvtn-journal-new-entry-for-time (current-time) text encrypt)
     (when (fboundp 'evil-normal-state) (evil-normal-state))
     (save-buffer)))
 
