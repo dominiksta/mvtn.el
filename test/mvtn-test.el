@@ -64,9 +64,8 @@ files. Mocking seemed like too much of a hassle here.")
   "Test `mvtn-create-new-file'"
   (mvtn-test-with-testfiles
    nil
-   (let ((yeardir (concat (mvtn-expand-note-name "prv/zettelkasten") "/"
-                          (format-time-string "%Y"))))
-     (mvtn-create-new-file "00000000-000000"
+   (let ((yeardir (concat (mvtn-expand-note-name "prv/zettelkasten") "/2021")))
+     (mvtn-create-new-file "20210000-000000"
                            "prv/zettelkasten" "My Note Title" "test" '("tag1" "tag2") "")
      (should (mvtn-test-file-exists-disregarding-timestamp-p
               "My Note Title -- tag1 tag2.test"
