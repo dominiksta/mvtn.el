@@ -19,6 +19,7 @@ files. Mocking seemed like too much of a hassle here.")
   (list (list :dir (expand-file-name "test-notes/private") :name "prv" :structure
               '((:dir "zettelkasten" :datetree t)
                 (:dir "devlog" :datetree t)
+                (:dir "fleeting" :datetree t)
                 (:dir "static" :datetree nil)))
         (list :dir (expand-file-name "test-notes/work") :name "wrk" :structure
               '((:dir "meetings" :datetree t)
