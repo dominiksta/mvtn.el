@@ -79,6 +79,8 @@ mvtn-$(VERSION).tar: $(EL)
 	rm -rf mvtn-$(VERSION)/
 	mkdir mvtn-$(VERSION)/
 	cp $(EL) mvtn-$(VERSION)/
+	cp mvtn-pkg.el mvtn-$(VERSION)/
+	cp -r templates mvtn-$(VERSION)/
 	tar cf $@ mvtn-$(VERSION)
 	rm -rf mvtn-$(VERSION)/
 
