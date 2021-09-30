@@ -421,7 +421,7 @@ passed to `mvtn-generate-file-name'."
   (let* ((file-name (mvtn-generate-file-name timestamp title extension tags encrypt))
          (full-dir (concat (mvtn-expand-note-name dir)
                            (if (member dir (mvtn-short-note-dir-list t))
-                               (concat "/" (format-time-string "%Y")) "")))
+                               (concat "/" (substring timestamp 0 4)) "")))
          (default-directory full-dir))
     (if (not (file-exists-p full-dir)) (mkdir full-dir t))
     (write-region "" nil file-name)
