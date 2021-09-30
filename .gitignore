@@ -1,3 +1,8 @@
 *.elc
 *.tar
 /test/test-notes/
+
+# Eldev:
+mvtn-autoloads.el
+/.eldev
+/Eldev-local
