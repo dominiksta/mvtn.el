@@ -73,11 +73,11 @@ To actually create a new note from a template, see
 Goes through all locations defined in `mvtn-template-locations'."
   (let ((result nil))
     (dolist (dir mvtn-template-locations)
-      (when (not (file-exists-p dir)) (mkdir dir))
-      ;; the regexp exlcudes . and ..
-      (setq result (append (directory-files
-                            dir t "^\\([^.]\\|\\.[^.]\\|\\.\\..\\).+\\.json")
-                           result)))
+      (when (file-exists-p dir)
+        ;; the regexp exlcudes . and ..
+        (setq result (append (directory-files
+                              dir t "^\\([^.]\\|\\.[^.]\\|\\.\\..\\).+\\.json")
+                             result))))
     result))
 
 (defun mvtn-template-list-short ()
