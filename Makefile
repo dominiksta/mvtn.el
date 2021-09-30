@@ -85,3 +85,7 @@ mvtn-$(VERSION).tar: $(EL)
 	rm -rf mvtn-$(VERSION)/
 
 package: mvtn-$(VERSION).tar
+
+run-package: package
+	$(EMACS) -Q --debug-init \
+	--eval '(package-install-file "mvtn-$(VERSION).tar")'
