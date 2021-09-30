@@ -80,6 +80,15 @@ and ENCRYPT is non-nil, the new note will be encrypted with gpg."
            title date id)
           encrypt))))))
 
+(defun mvtn-journal-open-daily-past-relative (n &optional encrypt)
+  "Open the daily note for N days in the past.
+If ENCRYPT is specified and the note does not yet exist, if will
+be encrypted with gpg."
+  (interactive)
+  (let* ((target-time (seconds-to-time (- (time-to-seconds)
+                                          (* 60 (* 60 (* 24 n)))))))
+    (mvtn-journal-open-daily-for-time target-time encrypt)))
+
 (defun mvtn-journal-new-entry-for-time (time text &optional encrypt)
   "Insert TEXT at a new entry at TIME in the daily note for TIME.
 If ENCRYPT is specified and the daily note for TIME does not yet
@@ -114,6 +123,14 @@ does not yet exist, if will be encrypted with gpg."
     (mvtn-journal-new-entry-for-time (current-time) text encrypt)
     (when (fboundp 'evil-normal-state) (evil-normal-state))
     (save-buffer)))
+
+;;;###autoload
+(defun mvtn-journal-new-entry-yesterday (&optional encrypt)
+  "Open yesterdays daily note.
+If ENCRYPT is specified and the note does not yet exist, if will
+be encrypted with gpg."
+  (interactive)
+  (mvtn-journal-open-daily-past-relative 1 encrypt))
 
 (provide 'mvtn-journal)
 
