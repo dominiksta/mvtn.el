@@ -320,15 +320,17 @@ optionally be limited to only items matching SEARCH."
 Requires GNU sort command to return persistent, name based sorting
 since find's sorting relies on creation time.  Result may
 optionally be limited to only items matching SEARCH."
-  (split-string
-   (shell-command-to-string
-    (format "%s * -type f %s -print %s | sort" find-program
-            (if search (format "-name '*%s*'" search) "")
-            (if mvtn-excluded-directories
-                (format "-o -path '*%s' -type d -prune"
-                        (mapconcat 'identity mvtn-excluded-directories
-                                   "' -type d -prune -o -path '*")) "")))
-   "\n" t))
+  (seq-filter
+   (lambda (el) (not (string-match-p "~$" el)))
+   (split-string
+    (shell-command-to-string
+     (format "%s * -type f %s -print %s | sort" find-program
+             (if search (format "-name '*%s*'" search) "")
+             (if mvtn-excluded-directories
+                 (format "-o -path '*%s' -type d -prune"
+                         (mapconcat 'identity mvtn-excluded-directories
+                                    "' -type d -prune -o -path '*")) "")))
+    "\n" t)))
 
 
 (defun mvtn--directory-files (dir &optional prefix search)
