@@ -278,11 +278,12 @@ FIELD may be one of 'year, 'month, 'day, 'hour, 'minute or
         (t nil)))
 
 
-(defun mvtn-template-for-extension (extension)
-  "RETURN the template in `mvtn-file-extension-templates' for EXTENSION."
+(defun mvtn-template-for-extension (extension var)
+  "RETURN the template in VAR for EXTENSION.  See
+`mvtn-file-extension-templates' or
+`mvtn-journal-file-extension-templates' for the format of VAR. "
   (declare (side-effect-free t))
-  (or (cadr (assoc extension mvtn-file-extension-templates))
-      (cadr (assoc "" mvtn-file-extension-templates))))
+  (or (cadr (assoc extension var)) (cadr (assoc "" var))))
 
 
 (defun mvtn-substitute-template (template-string title date timestamp)
@@ -674,7 +675,8 @@ Switch to the buffer of the new note.  If ENCRYPT is non-nil,
          (timestamp (mvtn-current-timestamp 'second))
          (title (read-from-minibuffer "Title: "))
          (content (mvtn-substitute-template
-                   (mvtn-template-for-extension mvtn-default-file-extension)
+                   (mvtn-template-for-extension
+                    mvtn-default-file-extension mvtn-file-extension-templates)
                    title (format-time-string "%Y-%m-%d") timestamp))
          (tags (if mvtn-cv-enable
                    (mvtn-cv-prompt-for-tags "") (mvtn-prompt-for-tags ""))))
