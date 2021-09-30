@@ -8,6 +8,7 @@ EL      = mvtn.el \
           mvtn-link-buttons.el \
           mvtn-tag-addons.el \
           mvtn-templates.el \
+          mvtn-journal.el \
           mvtn-ag.el \
           mvtn-rg.el
 TEST    = test/mvtn-test.el \
@@ -41,6 +42,7 @@ mvtn-test-file-helpers.elc: mvtn.el test/mvtn-test-helpers.el test/mvtn-test.el
 mvtn-test-tag-addons.elc: mvtn.el test/mvtn-test-helpers.el test/mvtn-test.el
 mvtn-test-templates.elc: mvtn.el mvtn-templates.el test/mvtn-test.el
 mvtn-file-helpers.elc: mvtn.el
+mvtn-journal.elc: mvtn.el
 mvtn-ag.elc: mvtn.el
 mvtn-rg.elc: mvtn.el
 mvtn-link-buttons.el: mvtn.el

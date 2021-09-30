@@ -703,7 +703,9 @@ If ALL is non-nil, ignore `mvtn-search-years'."
 (define-key mvtn-global-map (kbd "N") 'mvtn-new-note-from-template)
 (define-key mvtn-global-map (kbd "o") 'mvtn-open-note)
 (define-key mvtn-global-map (kbd "s") 'mvtn-search-full-text)
-(define-key mvtn-global-map (kbd "j") 'mvtn-jump-current-year-directory)
+(define-key mvtn-global-map (kbd "d") 'mvtn-jump-current-year-directory)
+(define-key mvtn-global-map (kbd "j") 'mvtn-journal-new-entry)
+(define-key mvtn-global-map (kbd "J") 'mvtn-journal-new-quick-entry)
 (define-key mvtn-global-map (kbd "t") 'mvtn-tag-file-list)
 (global-set-key (kbd "C-x C-.") mvtn-global-map)
 
