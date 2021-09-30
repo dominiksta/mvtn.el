@@ -24,8 +24,8 @@ excluded directories and only filters afterwards."
                                           mvtn-excluded-directories))))
                       (sort (directory-files-recursively
                              "." (if search
-                                     (format "^[^\\.]*%s" search)
-                                   "^[^\\.]")
+                                     (format "^[^\\.]*%s.*[^~]$" search)
+                                   "^[^\\.].*[^~]$")
                              nil)
                             'string<))))
 

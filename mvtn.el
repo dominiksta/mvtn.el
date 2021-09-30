@@ -307,7 +307,9 @@ Does not show hidden files (prefixed with '.').  Result may
 optionally be limited to only items matching SEARCH."
   (mapcar (lambda (file-name) (substring file-name 2))
           (sort (directory-files-recursively
-                 "." (if search (format "^[^\\.]*%s" search) "^[^\\.]") nil
+                 "." (if search (format "^[^\\.]*%s.*[^~]$" search)
+                       "^[^\\.].*[^~]$")
+                 nil
                  (lambda (dir-name) (not (member (file-name-nondirectory dir-name)
                                             mvtn-excluded-directories))))
                 'string<)))
