@@ -101,13 +101,14 @@ Goes through all locations defined in `mvtn-template-locations'."
 
 (defun mvtn-json-parse-string (string)
   "Parse a json string STRING.
-When an Emacs version < 27 is detected, uses json.el.  Otherwise,
-it uses the new native json implementation."
-  (if (< emacs-major-version 27)
-      (let ((json-object-type 'hash-table))
-        (ignore json-object-type)
-        (json-read-from-string string))
-    (json-parse-string string)))
+Uses json.el instead of the Emacs 27 native implementation, since
+said native implementation is only available on 27 and above.
+Because performance is not essential here (we are only parsing
+very small amounts of json), using json.el has no real
+downsides."
+  (let ((json-object-type 'hash-table))
+    (ignore json-object-type)
+    (json-read-from-string string)))
 
 (defun mvtn-template-parse-json-file (file)
   "Parse an mvtn template json file FILE into an alist.

@@ -8,12 +8,14 @@ EL      = mvtn.el \
           mvtn-link-buttons.el \
           mvtn-tag-addons.el \
           mvtn-templates.el \
+          mvtn-journal.el \
           mvtn-ag.el \
           mvtn-rg.el
 TEST    = test/mvtn-test.el \
           test/mvtn-test-helpers.el \
           test/mvtn-test-file-helpers.el \
           test/mvtn-test-templates.el \
+          test/mvtn-test-journal.el \
           test/mvtn-test-tag-addons.el
 
 # ----------------------------------------------------------------------
@@ -23,7 +25,7 @@ TEST    = test/mvtn-test.el \
 	$(EMACS) -batch -Q -L . -L test -f batch-byte-compile $<
 
 default: compile
-compile: $(EL:.el=.elc) $(TEST:.el=.elc)
+compile: $(EL:.el=.elc)
 
 # ----------------------------------------------------------------------
 # clean
@@ -41,6 +43,7 @@ mvtn-test-file-helpers.elc: mvtn.el test/mvtn-test-helpers.el test/mvtn-test.el
 mvtn-test-tag-addons.elc: mvtn.el test/mvtn-test-helpers.el test/mvtn-test.el
 mvtn-test-templates.elc: mvtn.el mvtn-templates.el test/mvtn-test.el
 mvtn-file-helpers.elc: mvtn.el
+mvtn-journal.elc: mvtn.el
 mvtn-ag.elc: mvtn.el
 mvtn-rg.elc: mvtn.el
 mvtn-link-buttons.el: mvtn.el
@@ -51,12 +54,8 @@ mvtn-templates.el: mvtn.el mvtn-file-helpers.el
 # unit tests
 # ----------------------------------------------------------------------
 test: compile
-	cd test && \
-	$(EMACS) -batch -Q -L .. -L . \
-	-l mvtn-test.elc \
-	-l mvtn-test-file-helpers.elc \
-	-l mvtn-test-tag-addons.elc \
-	-l mvtn-test-templates.elc \
+	$(EMACS) -batch -Q -L . -L test \
+	$(addprefix -l ,$(TEST)) \
 	-f ert-run-tests-batch
 
 
@@ -66,10 +65,7 @@ test: compile
 run: compile
 	cd test && \
 	$(EMACS) -Q --debug-init -L .. -L . \
-	-l mvtn-test.el \
-	-l mvtn-test-file-helpers.el \
-	-l mvtn-test-tag-addons.el \
-	-l mvtn-test-templates.el \
+	$(addprefix -l ,$(TEST)) \
 	--eval '(setq mvtn-note-directories mvtn-test-note-dirs)' \
 	--eval '(mvtn-test-with-testfiles t)' \
 	--eval '(find-file "mvtn-test.el")' \

@@ -278,11 +278,12 @@ FIELD may be one of 'year, 'month, 'day, 'hour, 'minute or
         (t nil)))
 
 
-(defun mvtn-template-for-extension (extension)
-  "RETURN the template in `mvtn-file-extension-templates' for EXTENSION."
+(defun mvtn-template-for-extension (extension var)
+  "RETURN the template in VAR for EXTENSION.  See
+`mvtn-file-extension-templates' or
+`mvtn-journal-file-extension-templates' for the format of VAR. "
   (declare (side-effect-free t))
-  (or (cadr (assoc extension mvtn-file-extension-templates))
-      (cadr (assoc "" mvtn-file-extension-templates))))
+  (or (cadr (assoc extension var)) (cadr (assoc "" var))))
 
 
 (defun mvtn-substitute-template (template-string title date timestamp)
@@ -306,7 +307,9 @@ Does not show hidden files (prefixed with '.').  Result may
 optionally be limited to only items matching SEARCH."
   (mapcar (lambda (file-name) (substring file-name 2))
           (sort (directory-files-recursively
-                 "." (if search (format "^[^\\.]*%s" search) "^[^\\.]") nil
+                 "." (if search (format "^[^\\.]*%s.*[^~]$" search)
+                       "^[^\\.].*[^~]$")
+                 nil
                  (lambda (dir-name) (not (member (file-name-nondirectory dir-name)
                                             mvtn-excluded-directories))))
                 'string<)))
@@ -317,15 +320,17 @@ optionally be limited to only items matching SEARCH."
 Requires GNU sort command to return persistent, name based sorting
 since find's sorting relies on creation time.  Result may
 optionally be limited to only items matching SEARCH."
-  (split-string
-   (shell-command-to-string
-    (format "%s * -type f %s -print %s | sort" find-program
-            (if search (format "-name '*%s*'" search) "")
-            (if mvtn-excluded-directories
-                (format "-o -path '*%s' -type d -prune"
-                        (mapconcat 'identity mvtn-excluded-directories
-                                   "' -type d -prune -o -path '*")) "")))
-   "\n" t))
+  (seq-filter
+   (lambda (el) (not (string-match-p "~$" el)))
+   (split-string
+    (shell-command-to-string
+     (format "%s * -type f %s -print %s | sort" find-program
+             (if search (format "-name '*%s*'" search) "")
+             (if mvtn-excluded-directories
+                 (format "-o -path '*%s' -type d -prune"
+                         (mapconcat 'identity mvtn-excluded-directories
+                                    "' -type d -prune -o -path '*")) "")))
+    "\n" t)))
 
 
 (defun mvtn--directory-files (dir &optional prefix search)
@@ -420,7 +425,7 @@ passed to `mvtn-generate-file-name'."
   (let* ((file-name (mvtn-generate-file-name timestamp title extension tags encrypt))
          (full-dir (concat (mvtn-expand-note-name dir)
                            (if (member dir (mvtn-short-note-dir-list t))
-                               (concat "/" (format-time-string "%Y")) "")))
+                               (concat "/" (substring timestamp 0 4)) "")))
          (default-directory full-dir))
     (if (not (file-exists-p full-dir)) (mkdir full-dir t))
     (write-region "" nil file-name)
@@ -674,7 +679,8 @@ Switch to the buffer of the new note.  If ENCRYPT is non-nil,
          (timestamp (mvtn-current-timestamp 'second))
          (title (read-from-minibuffer "Title: "))
          (content (mvtn-substitute-template
-                   (mvtn-template-for-extension mvtn-default-file-extension)
+                   (mvtn-template-for-extension
+                    mvtn-default-file-extension mvtn-file-extension-templates)
                    title (format-time-string "%Y-%m-%d") timestamp))
          (tags (if mvtn-cv-enable
                    (mvtn-cv-prompt-for-tags "") (mvtn-prompt-for-tags ""))))
@@ -701,7 +707,9 @@ If ALL is non-nil, ignore `mvtn-search-years'."
 (define-key mvtn-global-map (kbd "N") 'mvtn-new-note-from-template)
 (define-key mvtn-global-map (kbd "o") 'mvtn-open-note)
 (define-key mvtn-global-map (kbd "s") 'mvtn-search-full-text)
-(define-key mvtn-global-map (kbd "j") 'mvtn-jump-current-year-directory)
+(define-key mvtn-global-map (kbd "d") 'mvtn-jump-current-year-directory)
+(define-key mvtn-global-map (kbd "j") 'mvtn-journal-new-entry)
+(define-key mvtn-global-map (kbd "J") 'mvtn-journal-new-quick-entry)
 (define-key mvtn-global-map (kbd "t") 'mvtn-tag-file-list)
 (global-set-key (kbd "C-x C-.") mvtn-global-map)
 
