@@ -3,7 +3,7 @@
 ;; Author: dominiksta, phga
 ;; Maintainer: dominiksta
 ;; Version: 0.1
-;; Package-Requires: ((emacs "26"))
+;; Package-Requires: ((emacs "25"))
 ;; Homepage: https://github.com/dominiksta/mvtn.el
 ;; Keywords: notes notetaking minimal links
 
