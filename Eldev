@@ -1,13 +1,30 @@
 ; -*- mode: emacs-lisp; lexical-binding: t -*-
 
-;; Uncomment some calls below as needed for your project.
-;(eldev-use-package-archive 'gnu)
+;; basic setup
+;; ----------------------------------------------------------------------
+;; (eldev-use-package-archive 'gnu)
 (eldev-use-package-archive 'melpa)
+(eldev-use-plugin 'autoloads)
+
+(setq eldev-main-fileset '("./*.el"))
+
+;; testing
+;; ----------------------------------------------------------------------
 
 (eldev-add-loading-roots 'test "test")
 
-(setq eldev-dist-dir "dist")
+;; running in a default emacs
+;; ----------------------------------------------------------------------
 
-(eldev-add-extra-dependencies 'test 'with-simulated-input)
+(eldev-add-extra-dependencies 'emacs 'ivy)
+(eldev-add-loading-roots 'emacs "test")
+(eldev-add-loading-roots 'emacs "dev")
+(setq eldev-emacs-required-features '(mvtn mvtn-eldev-emacs))
 
-(eldev-use-plugin 'autoloads)
+;; packaging
+;; ----------------------------------------------------------------------
+
+(setq eldev-files-to-package '("./*.el" "./templates/*"))
+
+(when (eq system-type 'windows-nt)
+  (setq eldev-tar-executable "C:/Windows/System32/tar.exe"))

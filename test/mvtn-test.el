@@ -1,6 +1,7 @@
 ;;; mvtn-test.el --- Unit tests for mvtn -*- lexical-binding: t -*-
 
 (require 'mvtn)
+(require 'mvtn-test-setup)
 (require 'mvtn-test-helpers)
 (require 'ert)
 (require 'thingatpt)
@@ -9,23 +10,6 @@
 ;; NOTE: This is a personal project, not "enterprise" code. I did not invest
 ;; time in good coverage or anything of the sort. These are just basic tests to
 ;; (hopefully) catch basic bugs.
-
-
-(defvar mvtn-test-note-dir (expand-file-name "test-notes")
-  "A folder to create/rename/delete some actual note
-files. Mocking seemed like too much of a hassle here.")
-
-(defvar mvtn-test-note-dirs
-  (list (list :dir (expand-file-name "test-notes/private") :name "prv" :structure
-              '((:dir "zettelkasten" :datetree t)
-                (:dir "devlog" :datetree t)
-                (:dir "fleeting" :datetree t)
-                (:dir "static" :datetree nil)))
-        (list :dir (expand-file-name "test-notes/work") :name "wrk" :structure
-              '((:dir "meetings" :datetree t)
-                (:dir "static" :datetree nil))))
-  "A folder to create/rename/delete some actual note
-files. Mocking seemed like too much of a hassle here.")
 
 
 (ert-deftest mvtn-test-link-regexp ()

@@ -1,5 +1,6 @@
 ;;; mvtn-test-helpers.el --- Helpers for mvtn unit test -*- lexical-binding: t -*-
 
+(require 'mvtn)
 (require 'seq)
 
 ;; While this might not be applicable for all windows systems, without this the

@@ -34,20 +34,18 @@ jobs:
           - '26.3'
           - '27.1'
     steps:
-      # Required to test against different emacs version
-      - uses: purcell/setup-emacs@master
+      - name: Set up emacs
+        uses: purcell/setup-emacs@master
         # Run steps with emacs version specified in the matrix above
         with:
           version: ${{ matrix.emacs_version }}
-      # Check out repository (we are inside of the repo-root now)
-      - uses: actions/checkout@v2
-      # TODO: Do this in an sophisticated way
-      - name: Run tests with make
+
+      - name: Install Eldev
+        run: curl -fsSL https://raw.github.com/doublep/eldev/master/webinstall/github-eldev | sh
+
+      - name: Check out repository
+        uses: actions/checkout@v2
+
+      - name: Run tests with eldev
         run: |
-          # cat is necessary to write the ert output to test.result w/o
-          # it will only print the make commands itself
-          make clean && make test 2>&1 | cat > test.result
-          # Print the test results to stdout for debugging purposes
-          cat test.result
-          # If a test failed, exit abnormally
-          grep FAILED test.result 2>&1 > /dev/null && exit -1 || exit 0
+          eldev --packaged --debug --trace --time --color test
