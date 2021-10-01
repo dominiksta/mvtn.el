@@ -14,7 +14,6 @@
 
 (ert-deftest mvtn-test-link-regexp ()
   "Test `mvtn--link-regexp'"
-  (should nil)
   (should (string-match-p mvtn--link-regexp
                           "^^20210110-135222 testname -- testtag.org^^"))
   (should (string-match-p
