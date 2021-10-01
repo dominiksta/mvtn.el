@@ -46,6 +46,11 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v2
 
+        # For some unknown reason, mvtn-compat.el seems to not be loaded when
+        # eldev test is run with the --packaged flag. Even weirder, it seems to
+        # only happen the first time eldev test is run. Running it a second time
+        # fixes the issue.
       - name: Run tests with eldev
         run: |
+          eldev --packaged --debug --trace --time --color test || true
           eldev --packaged --debug --trace --time --color test
