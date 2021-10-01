@@ -11,3 +11,14 @@ is simplicity. The core of mvtn should *always* remain independent of add-on
 code and less then 500 LOC in size.
 
 I will write a more thourough readme on release.
+
+# Building and Testing
+
+Mvtn uses [eldev](https://github.com/doublep/eldev) for building, testing and
+packaging. After [installing
+eldev](https://github.com/doublep/eldev#installation), see the `Makefile` for
+available targets (or run `eldev` directly yourself).
+
+For further details you can check the [eldevs
+documentation](https://github.com/doublep/eldev).
+
