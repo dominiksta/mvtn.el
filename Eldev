@@ -6,7 +6,7 @@
 (eldev-use-package-archive 'melpa)
 (eldev-use-plugin 'autoloads)
 
-(setq eldev-main-fileset '("./*.el"))
+(setq eldev-main-fileset '("./*.el" "./templates/*"))
 
 ;; testing
 ;; ----------------------------------------------------------------------
