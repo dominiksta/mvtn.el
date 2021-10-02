@@ -7,6 +7,7 @@ on:
   push:
     # MAYB: only in master
     # branches: [ master ]
+    paths-ignore: ['**.md']
   pull_request:
     branches: [ master ]
     # MANUALLY
