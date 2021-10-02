@@ -101,3 +101,10 @@ directories) _will_ slow things down.
 
 For more advanced configuration, you can refer to my (@dominiksta) [personal
 config](https://github.com/dominiksta/dotfiles2/blob/master/stow/emacs/.emacs.d/config/applications/config-mvtn.el).
+
+## Acknowledgements
+
+Mvnt borrows heavily from several existing emacs packages:
+- [usls](https://protesilaos.com/codelog/2020-10-08-intro-usls-emacs-notes/)
+- [org-roam](https://github.com/org-roam/org-roam)
+- [zetteldeft](https://github.com/EFLS/zetteldeft)
