@@ -34,7 +34,14 @@ Format specifiers from `format-time-string' can be used."
   :type '(list :value-type string) :group 'mvtn)
 
 (defcustom mvtn-journal-file-extension-templates
-  mvtn-file-extension-templates
+  (list
+   '("org" "#+TITLE: {title}
+#+DATE: {date}
+# mvtn_original_title :: {title}
+# mvtn_original_id :: {timestamp}
+#+STARTUP: fold\n\n")
+   (assoc "md" mvtn-file-extension-templates)
+   (assoc "" mvtn-file-extension-templates))
   "Like `mvtn-file-extension-templates', expept for journal notes."
   :type '(list :value-type string) :group 'mvtn)
 
