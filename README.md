@@ -1,7 +1,7 @@
 # mvtn - "Minimum Viable Text Notes"
 
 [![Unit-Tests](https://github.com/dominiksta/mvtn.el/actions/workflows/testing.yml/badge.svg)](https://github.com/dominiksta/mvtn.el/actions/workflows/testing.yml)
-![License](https://img.shields.io/github/license/dominiksta/mvtn.el)
+[![License](https://img.shields.io/github/license/dominiksta/mvtn.el)](https://github.com/dominiksta/mvtn.el/blob/master/LICENSE)
 
 **WARNING**: This package is yet to be tested thouroughly and is still subject
 to breaking changes. Do NOT expect stability just yet. A first release is coming
