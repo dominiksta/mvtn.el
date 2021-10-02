@@ -8,6 +8,7 @@
 ;;; Code:
 
 (require 'mvtn)
+(require 'mvtn-file-helpers)
 
 (defface mvtn-link-face `((t :inherit link))
   "Face used for displaying mvtn links." :group 'mvtn)
@@ -16,10 +17,6 @@
 
 (defvar mvtn-link-map (make-sparse-keymap)
   "The keymap when point is at an mvtn link.")
-
-(defvar mvtn--named-link-regexp
-  "\\(\\^\\^\\)\\([[:digit:]]\\{8\\}-[[:digit:]]\\{6\\}\\)\\( \\)\\([^^]+\\)\\(\\^\\^\\)"
-  "Only matches 'named' mvtn links (meaning links with text after the id).")
 
 (defvar mvtn-link-properties
   `(face mvtn-link-face mouse-face mvtn-link-mouse-face

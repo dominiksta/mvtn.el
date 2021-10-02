@@ -11,6 +11,10 @@
 
 (declare-function dired-get-filename "ext:dired")
 
+(defvar mvtn--named-link-regexp
+  "\\(\\^\\^\\)\\([[:digit:]]\\{8\\}-[[:digit:]]\\{6\\}\\)\\( \\)\\([^][^]+\\)\\(\\^\\^\\)"
+  "Only matches 'named' mvtn links (meaning links with text after the id).")
+
 (defun mvtn-get-string-from-file (filepath)
   "RETURN FILEPATH's file content."
   (with-temp-buffer (insert-file-contents filepath) (buffer-string)))
