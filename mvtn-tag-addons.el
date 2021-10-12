@@ -91,7 +91,12 @@ inserted in the minibuffer."
   "Display a list of all files matching all specified TAGS.
 With a prefix argument (or setting ALL to non-nil), ignore
 `mvtn-search-years'."
-  (interactive "MTags: \nP")
+  (interactive
+   (list (mapconcat 'identity
+                    (if mvtn-cv-enable
+                        (mvtn-cv-prompt-for-tags "") (mvtn-prompt-for-tags ""))
+                    " ")
+         current-prefix-arg))
   (let ((buffer (get-buffer-create
                  (concat "*Mvtn Tag File List <" tags ">"
                          (if all " ALL" "") "*"))))
