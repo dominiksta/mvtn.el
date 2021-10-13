@@ -641,13 +641,27 @@ is non-nil (can be set through a universal argument), then
 
 ;;;###autoload
 (defun mvtn-insert-link ()
-  "Prompt for a note to insert a link to."
+  "Prompt for a note to insert a link to.
+If the entered query does not match an existing note, create a
+new one.  If the region is active, the link will replace the
+region."
   (interactive)
   (let* ((answer (completing-read "Insert link to: " (mvtn-list-files)))
-         (link (mvtn--extract-note-identity answer t)))
-    (when (not (string-match-p (concat "^" mvtn--id-regexp ".*") link))
-      (error "Invalid mvtn filename: %s" answer))
-    (insert (format "^^%s^^" link))))
+         (exists (string-match-p mvtn--id-regexp answer))
+         (id (if exists (mvtn--extract-note-identity answer)
+               (mvtn-current-timestamp 'second)))
+         (id+name (if exists (mvtn--extract-note-identity answer t)
+                    (concat id " " answer)))
+         (dir (if (not exists)
+                  (completing-read "Directory: " (mvtn-short-note-dir-list))))
+         (replace-region (lambda (id) (let ((text (buffer-substring-no-properties
+                                              (region-beginning) (region-end))))
+                                   (delete-region (region-beginning) (region-end))
+                                   (insert (format "^^%s %s^^" id text))))))
+    (if (use-region-p)
+        (funcall replace-region id)
+      (insert (format "^^%s^^" id+name)))
+    (when (not exists) (mvtn-new-note dir id answer t))))
 
 
 ;;;###autoload
