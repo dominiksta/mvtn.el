@@ -699,15 +699,26 @@ If ALL is non-nil, ignore `mvtn-search-years'."
   (let* ((answer (completing-read "Open note: " (mvtn-list-files all))))
     (find-file (mvtn-expand-note-name answer))))
 
+;;;###autoload
+(defun mvtn-open-or-create-note (&optional all)
+  "Open or create a new note.
+If ALL is non-nil, ignore `mvtn-search-years'.  If you want to
+create an encrypted note, use `mvtn-new-note' directly."
+  (interactive)
+  (let* ((answer (completing-read "Note: " (mvtn-list-files nil))))
+    (if (string-match-p mvtn--id-regexp answer)
+        (find-file (mvtn-expand-note-name answer))
+      (mvtn-new-note (completing-read "Directory: " (mvtn-short-note-dir-list))
+                     (mvtn-current-timestamp 'second) answer all))))
+
 (defvar mvtn-minor-mode-map (make-sparse-keymap))
 (define-key mvtn-minor-mode-map (kbd "C-c C-. o") 'mvtn-follow-link-at-point)
 (define-key mvtn-minor-mode-map (kbd "C-c C-. i") 'mvtn-insert-link)
 (define-key mvtn-minor-mode-map (kbd "C-c C-. b") 'mvtn-search-backlinks)
 (define-key mvtn-minor-mode-map (kbd "C-c C-. r") 'mvtn-rename-current-file)
 (defvar mvtn-global-map (make-sparse-keymap))
-(define-key mvtn-global-map (kbd "n") 'mvtn-new-note)
+(define-key mvtn-global-map (kbd "n") 'mvtn-open-or-create-note)
 (define-key mvtn-global-map (kbd "N") 'mvtn-new-note-from-template)
-(define-key mvtn-global-map (kbd "o") 'mvtn-open-note)
 (define-key mvtn-global-map (kbd "s") 'mvtn-search-full-text)
 (define-key mvtn-global-map (kbd "d") 'mvtn-jump-current-year-directory)
 (define-key mvtn-global-map (kbd "j") 'mvtn-journal-new-entry)
