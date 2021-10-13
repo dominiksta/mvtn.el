@@ -646,7 +646,9 @@ If the entered query does not match an existing note, create a
 new one.  If the region is active, the link will replace the
 region."
   (interactive)
-  (let* ((answer (completing-read "Insert link to: " (mvtn-list-files)))
+  (let* ((region (if (use-region-p) (buffer-substring-no-properties
+                                     (region-beginning) (region-end))))
+         (answer (completing-read "Insert link to: " (mvtn-list-files) nil nil region))
          (exists (string-match-p mvtn--id-regexp answer))
          (id (if exists (mvtn--extract-note-identity answer)
                (mvtn-current-timestamp 'second)))
@@ -654,10 +656,8 @@ region."
                     (concat id " " answer)))
          (dir (if (not exists)
                   (completing-read "Directory: " (mvtn-short-note-dir-list))))
-         (replace-region (lambda (id) (let ((text (buffer-substring-no-properties
-                                              (region-beginning) (region-end))))
-                                   (delete-region (region-beginning) (region-end))
-                                   (insert (format "^^%s %s^^" id text))))))
+         (replace-region (lambda (id) (delete-region (region-beginning) (region-end))
+                           (insert (format "^^%s %s^^" id region)))))
     (if (use-region-p)
         (funcall replace-region id)
       (insert (format "^^%s^^" id+name)))
