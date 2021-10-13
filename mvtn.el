@@ -670,24 +670,26 @@ INITIAL will already be inserted in the minibuffer."
     (if (eq (length answer) 0) nil (split-string answer ","))))
 
 ;;;###autoload
-(defun mvtn-new-note (&optional encrypt)
+(defun mvtn-new-note (dir timestamp title &optional no-open encrypt)
   "Create a new note using `mvtn-create-new-file'.
-Switch to the buffer of the new note.  If ENCRYPT is non-nil,
-'epa.el' is used to encrypt the file with gpg."
-  (interactive "P")
-  (let* ((dir (completing-read "Directory: " (mvtn-short-note-dir-list)))
-         (timestamp (mvtn-current-timestamp 'second))
-         (title (read-from-minibuffer "Title: "))
-         (content (mvtn-substitute-template
+Create the note in DIR with TIMESTAMP and TITLE.  When called
+interactively, prompt for DIR, generate TIMESTAMP and also prompt
+for TITLE.  Unless NO-OPEN is non-nil, switch to a new buffer
+with the new note open.  If ENCRYPT is non-nil, 'epa.el' is used
+to encrypt the file with gpg."
+  (interactive (list (completing-read "Directory: " (mvtn-short-note-dir-list))
+                     (mvtn-current-timestamp 'second)
+                     (read-from-minibuffer "Title: ") nil current-prefix-arg))
+  (let* ((content (mvtn-substitute-template
                    (mvtn-template-for-extension
                     mvtn-default-file-extension mvtn-file-extension-templates)
                    title (format-time-string "%Y-%m-%d") timestamp))
          (tags (if mvtn-cv-enable
                    (mvtn-cv-prompt-for-tags "") (mvtn-prompt-for-tags ""))))
-    (switch-to-buffer
-     (mvtn-create-new-file timestamp dir title mvtn-default-file-extension tags
-                           content encrypt))))
-
+    (let ((buf (mvtn-create-new-file
+                timestamp dir title mvtn-default-file-extension tags content
+                encrypt)))
+      (unless no-open (switch-to-buffer buf)))))
 
 ;;;###autoload
 (defun mvtn-open-note (&optional all)
