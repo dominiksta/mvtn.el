@@ -620,9 +620,7 @@ paths.  When ALL is non-nil, `mvtn-search-years' is ignored."
 If ALL is non-nil, `mvtn-search-years' will be ignored."
   (interactive "MSearch: \nP")
   (let* ((default-directory (plist-get (car mvtn-note-directories) :dir)))
-    (if all
-        (funcall mvtn-search-function string (mvtn--search-dirs t))
-      (funcall mvtn-search-function string (mvtn--search-dirs)))))
+    (funcall mvtn-search-function string (mvtn--search-dirs all))))
 
 
 ;;;###autoload
