@@ -555,7 +555,7 @@ Also highlight the match with `pulse', if available.  See
 (defun mvtn-link-action-goto-line (line)
   "Go to line given by LINE in current buffer.
  See `mvtn-link-actions'."
-  (goto-char (point-min)) (forward-line (string-to-number line))
+  (goto-char (point-min)) (forward-line (1- (string-to-number line)))
   (require 'pulse nil nil)
   (when (fboundp 'pulse-momentary-highlight-region)
     (pulse-momentary-highlight-region (point-at-bol) (point-at-eol))))
