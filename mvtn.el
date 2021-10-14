@@ -745,6 +745,7 @@ create an encrypted note, use `mvtn-new-note' directly."
 (define-key mvtn-minor-mode-map (kbd "C-c C-. r") 'mvtn-rename-current-file)
 (defvar mvtn-global-map (make-sparse-keymap))
 (define-key mvtn-global-map (kbd "n") 'mvtn-open-or-create-note)
+(define-key mvtn-global-map (kbd "b") 'mvtn-backlink-buffer-toggle-side-window)
 (define-key mvtn-global-map (kbd "N") 'mvtn-new-note-from-template)
 (define-key mvtn-global-map (kbd "s") 'mvtn-search-full-text)
 (define-key mvtn-global-map (kbd "d") 'mvtn-jump-current-year-directory)
