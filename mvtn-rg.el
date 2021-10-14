@@ -16,6 +16,9 @@
 (defvar rg-command-line-flags)
 (defvar rg-build-command)
 
+;; ----------------------------------------------------------------------
+;; interactive searches with rg.el
+;; ----------------------------------------------------------------------
 
 (defvar mvtn--rg-overwrite-command-command ""
   "Needed for `mvtn--rg-search-full-command'.")
@@ -61,6 +64,20 @@ is not found."
   (if (not (executable-find rg-executable))
       (mvtn-search-full-text-grep string dirs)
     (mvtn--rg-search-multi-directory default-directory dirs string)))
+
+
+;; ----------------------------------------------------------------------
+;; programmatic searches with just the cli
+;; ----------------------------------------------------------------------
+
+;;;###autoload
+(defun mvtn-search-full-text-rg-async-command (string)
+  "Return an rg command for a full text search in all notes.
+Searches for the regexp STRING."
+  (let ((default-directory (plist-get (car mvtn-note-directories) :dir)))
+    (append (list rg-executable "-nH0" "--no-heading"
+                  "--before-context=2" string)
+            (mvtn--search-dirs))))
 
 
 (provide 'mvtn-rg)
