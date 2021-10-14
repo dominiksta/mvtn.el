@@ -172,11 +172,17 @@ used.  Other options are `mvtn-search-full-text-ag' and
 `mvtn-search-full-text-rg'."
   :type 'symbol :group 'mvtn)
 
+(defcustom mvtn-grep-program (executable-find "grep")
+  "The grep executable used for `mvtn-search-full-text-grep'."
+  :type 'string :group 'mvtn)
+
+(defcustom mvtn-find-program (executable-find "find")
+  "The grep executable used for `mvtn-list-files-function-find'."
+  :type 'string :group 'mvtn)
+
 (defcustom mvtn-list-files-function
-  (if (and (not (eq system-type 'windows-nt))
-           (executable-find find-program))
-      'mvtn-list-files-function-find
-    'mvtn-list-files-function-native)
+  (if (and (not (eq system-type 'windows-nt)) mvtn-find-program)
+      'mvtn-list-files-function-find 'mvtn-list-files-function-native)
   "The 'backend' function for `mvtn-list-files'.
 This affects `mvtn-open-note', `mvtn-insert-link' and everything
 else calling `mvtn-list-files'.
@@ -324,7 +330,7 @@ optionally be limited to only items matching SEARCH."
    (lambda (el) (not (string-match-p "~$" el)))
    (split-string
     (shell-command-to-string
-     (format "%s * -type f %s -print %s | sort" find-program
+     (format "%s * -type f %s -print %s | sort" mvtn-find-program
              (if search (format "-name '*%s*'" search) "")
              (if mvtn-excluded-directories
                  (format "-o -path '*%s' -type d -prune"
@@ -555,7 +561,7 @@ Also highlight the match with `pulse', if available.  See
   ;; `grep-use-null-device' remains enabled, it causes problems when using
   ;; compatibility layers like cygwin.
   (let ((grep-use-null-device nil))
-    (grep (concat (shell-quote-argument (executable-find "grep"))
+    (grep (concat (shell-quote-argument mvtn-grep-program)
                   " "
                   (shell-quote-argument string)
                   " -nH --null -r -I "
