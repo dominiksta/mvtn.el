@@ -225,10 +225,8 @@ ignores them because the ability to save a file seems more
 important than journaling."
   (condition-case nil
       (let* ((id+name (mvtn--extract-note-identity buffer-file-name t))
-             (link (format "^^%s^^" id+name))
-             (name (save-match-data
-                      (string-match mvtn--named-link-regexp link)
-                      (match-string-no-properties 4 link)))
+             (link (format "%s" id+name))
+             (name (substring link 16))
              (today (format-time-string "%Y%m%d"))
              (match (format "^%s-%s" today mvtn-journal-daily-timestamp)))
         ;; ignore the current journal note to avoid an infinite loop
