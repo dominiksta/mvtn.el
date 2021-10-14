@@ -196,7 +196,8 @@ See `mvtn-list-files-function-native' and
 `mvtn-list-files-function-find'."
   :type 'symbol :group 'mvtn)
 
-(defcustom mvtn-link-actions '((" :: " mvtn-link-action-search))
+(defcustom mvtn-link-actions '((" :: " mvtn-link-action-search)
+                               (" :l: " mvtn-link-action-goto-line))
   "A list of 'actions' that may be defined in a link.
 Links may specify additional actions to be executed after
 following the link.  These actions are defined in this alist.
@@ -550,6 +551,14 @@ Also highlight the match with `pulse', if available.  See
   (require 'pulse nil nil)
   (when (fboundp 'pulse-momentary-highlight-region)
     (pulse-momentary-highlight-region (match-beginning 0) (match-end 0))))
+
+(defun mvtn-link-action-goto-line (line)
+  "Go to line given by LINE in current buffer.
+ See `mvtn-link-actions'."
+  (goto-char (point-min)) (forward-line (string-to-number line))
+  (require 'pulse nil nil)
+  (when (fboundp 'pulse-momentary-highlight-region)
+    (pulse-momentary-highlight-region (point-at-bol) (point-at-eol))))
 
 
 (defun mvtn-search-full-text-grep (string dirs)
