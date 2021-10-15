@@ -17,6 +17,7 @@ TEST    = test/mvtn-test.el \
           test/mvtn-test-file-helpers.el \
           test/mvtn-test-templates.el \
           test/mvtn-test-journal.el \
+          test/mvtn-test-backlink-buffer.el \
           test/mvtn-test-tag-addons.el
 
 # ----------------------------------------------------------------------

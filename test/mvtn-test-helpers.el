@@ -63,6 +63,15 @@ And some more content."
      (mvtn-test-touch "20201212-134541 test1 (fake conflicted copy).txt")
      (mvtn-test-touch "20201212-134542 test2 test2 -- tags tags tags.txt")
      (mvtn-test-touch "20201212-134544 test3 test3.org")
+     (write-region "title: test1337
+date: 2020-12-12
+mvtn_original_title :: yes yes very much
+mvtn_original_id :: 20201212-134544
+----------------------------------------------------------------------
+
+Here is a link: ^^20210110-134524^^
+And another link to the same note: ^^20210110-134524 yes^^"
+                   nil  "20201212-134544 test3 test3.org")
      (cd "..") (mkdir "2021") (cd "2021")
      (mvtn-touch-new-file "prv/zettelkasten" "20210110-134522" "test1" "md"
                           '("i" "have" "tags"))
