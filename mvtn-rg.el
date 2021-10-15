@@ -70,13 +70,25 @@ is not found."
 ;; programmatic searches with just the cli
 ;; ----------------------------------------------------------------------
 
+(defcustom mvtn-search-full-text-rg-async-sort t
+  "Wether to sort results in `mvtn-search-full-text-rg-async-command'.
+Settings this to nil could improve performance because rg can
+only run single threaded when the results are sorted.  However,
+setting this to nil also means that results in for example the
+backlink buffer will sometimes move around to different
+positions, which can be disorienting."
+  :type 'boolean :group 'mvtn)
+
 ;;;###autoload
 (defun mvtn-search-full-text-rg-async-command (string)
   "Return an rg command for a full text search in all notes.
 Searches for the regexp STRING."
   (let ((default-directory (plist-get (car mvtn-note-directories) :dir)))
     (append (list rg-executable "-nH0" "--no-heading"
-                  "--before-context=2" string)
+                  "--before-context=2"
+                  (format "--sort=%s" (if mvtn-search-full-text-rg-async-sort
+                                          "path" "none"))
+                  string)
             (mvtn--search-dirs))))
 
 
