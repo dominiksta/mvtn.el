@@ -24,10 +24,13 @@ Can be one of '(grep rg)."
 Headings refer to the actual backlinks here."
   :type 'list :group 'mvtn)
 
-(defcustom mvtn-backlink-buffer-side-window-side 'right
-  "On what side to open the backlink buffer.
-Can be one of '(top bottom left right)."
-  :type 'symbol :group 'mvtn)
+(defcustom mvtn-backlink-buffer-display-settings
+  '(display-buffer-in-side-window . ((side . right) (window-width . 0.2)))
+  "How the backlink window should be displayed.
+This will be passed to `display-buffer' as ACTION.  See
+`display-buffer' and Info node `(elisp) Buffer Display Action
+Alists' for available options."
+  :type 'sexp :group 'mvtn)
 
 (defcustom mvtn-backlink-buffer-mode-line-format " *mvtn-backlinks*"
   "The format of the backlink buffers mode-line.
@@ -190,9 +193,8 @@ ACTION (either 'show or 'hide).  See
   (let ((win (get-buffer-window mvtn-backlink-buffer)))
     (when (or (eq action 'show) (and (eq action nil) (not win)))
       (mvtn-backlink-buffer-side-window-mode 1)
-      (display-buffer-in-side-window
-       (get-buffer-create mvtn-backlink-buffer)
-       (list (cons 'side mvtn-backlink-buffer-side-window-side))))
+      (display-buffer (get-buffer-create mvtn-backlink-buffer)
+                      mvtn-backlink-buffer-display-settings))
     (when (and win (or (eq action 'hide) (eq action nil)))
       (delete-window win))))
 
