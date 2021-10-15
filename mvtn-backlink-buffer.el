@@ -111,7 +111,6 @@ is emitting."
         (dolist (el parsed)
           (let* ((id+name (mvtn--extract-note-identity (plist-get el :file) t))
                  (name (substring id+name 16))
-                 (id (substring id+name 0 15))
                  (link (format "^^%s :l: %s^^" id+name (plist-get el :line))))
             (insert "- ")
             (insert-button (format "%s" name)
