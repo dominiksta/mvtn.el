@@ -114,7 +114,8 @@ is emitting."
                            'button t
                            'help-echo (format "Follow link: %s" link)
                            'mvtn-link link
-                           'action (lambda (b) (mvtn-follow-link (button-get b 'mvtn-link)))
+                           'action (lambda (b) (mvtn-follow-link (button-get b 'mvtn-link))
+                                     (mvtn-backlink-buffer-populate))
                            'keymap '(keymap
                                      (mouse-1 . push-button)
                                      (13 . push-button)) ;; RET
@@ -155,17 +156,13 @@ Should not be used manually as calling
 `mvtn-backlink-buffer-toggle-side-window' is more intuitive."
   nil " backlinks" nil
   :global t
-  (if (bound-and-true-p mvtn-backlink-buffer-side-window-mode)
-      (progn
-        (add-hook 'window-state-change-hook
-                  'mvtn-backlink-buffer-maybe-update-side-window)
-        (add-hook 'after-save-hook
-                  'mvtn-backlink-buffer-maybe-update-side-window))
-    (progn
-      (remove-hook 'window-state-change-hook
-                   'mvtn-backlink-buffer-maybe-update-side-window)
-      (remove-hook 'after-save-hook
-                   'mvtn-backlink-buffer-maybe-update-side-window))))
+  (let ((hooks (if (> emacs-major-version 26)
+                   '(window-state-change-hook)
+                 '(window-configuration-change-hook post-command-hook))))
+    (dolist (hook hooks)
+      (if (bound-and-true-p mvtn-backlink-buffer-side-window-mode)
+          (add-hook hook 'mvtn-backlink-buffer-maybe-update-side-window)
+        (remove-hook hook 'mvtn-backlink-buffer-maybe-update-side-window)))))
 
 (defun mvtn-backlink-buffer-maybe-update-side-window ()
   "Maybe run `mvtn-backlink-buffer-populate'.
