@@ -331,7 +331,8 @@ optionally be limited to only items matching SEARCH."
    (lambda (el) (not (string-match-p "~$" el)))
    (split-string
     (shell-command-to-string
-     (format "%s * -type f %s -print %s | sort" mvtn-find-program
+     (format "%s * -type f %s -print %s | sort"
+             (shell-quote-argument mvtn-find-program)
              (if search (format "-name '*%s*'" search) "")
              (if mvtn-excluded-directories
                  (format "-o -path '*%s' -type d -prune"
