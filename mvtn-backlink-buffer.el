@@ -95,13 +95,7 @@ is emitting."
            (parsed (mvtn-backlink-buffer-parse-command-output result)))
       (kill-buffer (process-buffer process))
       (with-current-buffer (get-buffer-create mvtn-backlink-buffer)
-        (org-mode)
-        (setq-local org-hide-emphasis-markers t)
-        (visual-line-mode 1)
-        (setq-local mode-line-format mvtn-backlink-buffer-mode-line-format)
-        (apply 'face-remap-add-relative
-               (append '(button) mvtn-backlink-buffer-heading-face))
-        (mvtn-link-buttons-fontify)
+        (mvtn-backlink-buffer-mode)
         (read-only-mode 0)
         (erase-buffer)
         (insert (format "*%s*\n" (substring mvtn-backlink-buffer--title 16)))
@@ -180,6 +174,35 @@ Only runs said function if in `mvtn-minor-mode' and the
   (when (and (bound-and-true-p mvtn-minor-mode)
              (get-buffer-window mvtn-backlink-buffer))
     (mvtn-backlink-buffer-populate)))
+
+(define-derived-mode mvtn-backlink-buffer-mode org-mode
+  "Mvtn Backlink Buffer Mode"
+  "The major mode for `mvtn-backlink-buffer-toggle-side-window'."
+  (setq-local org-hide-emphasis-markers t)
+  (visual-line-mode 1)
+  (setq-local mode-line-format mvtn-backlink-buffer-mode-line-format)
+  (apply 'face-remap-add-relative
+         (append '(button) mvtn-backlink-buffer-heading-face))
+  (mvtn-link-buttons-fontify))
+
+(defun mvtn-backlink-buffer-next-backlink (count)
+  "Move forward COUNT backlinks in the backlink buffer."
+  (interactive "p")
+  (dotimes (_ count) (search-forward-regexp "^- " nil t)))
+
+(defun mvtn-backlink-buffer-previous-backlink (count)
+  "Move backward COUNT backlinks in the backlink buffer."
+  (interactive "p")
+  (condition-case nil
+      (dotimes (_ count)
+        (search-backward-regexp "^- " nil nil 2)
+        (forward-char 2))
+    (error nil)))
+
+(define-key mvtn-backlink-buffer-mode-map (kbd "n")
+  'mvtn-backlink-buffer-next-backlink)
+(define-key mvtn-backlink-buffer-mode-map (kbd "p")
+  'mvtn-backlink-buffer-previous-backlink)
 
 ;;;###autoload
 (defun mvtn-backlink-buffer-toggle-side-window (action)
