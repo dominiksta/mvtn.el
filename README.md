@@ -13,6 +13,8 @@ code and as small as reasonable in LOC.
 
 I will write more thourough documentation on release.
 
+![Screenshot](https://pixelfed-prod.nyc3.cdn.digitaloceanspaces.com/public/m/_v2/354624626376268013/2a69c66ec-4b94d5/Htp5jXbDxO7S/6LZUjioXQdAQfrJFvehTGdtfTcVlk6cn9y5PTym7.png)
+
 ## Features
 
 - Mvtn is independent of file format. You can use Markdown, org-mode or whatever
