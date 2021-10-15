@@ -179,6 +179,7 @@ Only runs said function if in `mvtn-minor-mode' and the
   "Mvtn Backlink Buffer Mode"
   "The major mode for `mvtn-backlink-buffer-toggle-side-window'."
   (setq-local org-hide-emphasis-markers t)
+  (org-indent-mode 1)
   (visual-line-mode 1)
   (setq-local mode-line-format mvtn-backlink-buffer-mode-line-format)
   (apply 'face-remap-add-relative
