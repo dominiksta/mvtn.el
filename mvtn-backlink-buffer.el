@@ -193,7 +193,11 @@ Only runs said function if in `mvtn-minor-mode' and the
   (interactive "p")
   (condition-case nil
       (dotimes (_ count)
-        (search-backward-regexp "^- " nil nil 2)
+        (search-backward-regexp
+         "^- " nil nil (if (string-equal
+                            "- " (buffer-substring-no-properties
+                                  (point-at-bol) (+ (point-at-bol) 2)))
+                           2 1))
         (forward-char 2))
     (error nil)))
 
