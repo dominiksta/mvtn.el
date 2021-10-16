@@ -409,8 +409,8 @@ replaced by an underscore ('_')
 
 Specifically:
 - / is not allowed on Linux
-- <, >, :, \", /, \\, |, ? and * are not allowed on Windows"
-  (replace-regexp-in-string "/\\|<\\|>\\|*\\||\\|:\\|\\\\\\|?" "_" title))
+- <, >, *, |, :, \\, ?, \", / are not allowed on Windows"
+  (replace-regexp-in-string "/\\|<\\|>\\|*\\||\\|:\\|\\\\\\|?\\|\"" "_" title))
 
 
 (defun mvtn-generate-file-name (timestamp title extension tags &optional encrypt)
