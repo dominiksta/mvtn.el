@@ -19,6 +19,24 @@
   "RETURN FILEPATH's file content."
   (with-temp-buffer (insert-file-contents filepath) (buffer-string)))
 
+;;;###autoload
+(defun mvtn-new-note-from-template-string (dir title extension tags string
+                                               &optional no-open)
+  "Create a new note from the template string STRING.
+This function can be used to more easily create notes
+programatically (also in your personal configuration).  The note
+will be created in DIR (see `mvtn-note-directories') with the
+title TITLE, the file extension EXTENSION and TAGS.  If NO-OPEN
+is non-nil, the new note will not be displayed in the current
+buffer."
+  (interactive)
+  (let ((timestamp (mvtn-current-timestamp 'second))
+        (date (format-time-string "%Y-%m-%d")))
+    (let ((buf (mvtn-create-new-file timestamp dir title extension tags
+                                     (mvtn-substitute-template
+                                      string title date timestamp))))
+      (unless no-open (switch-to-buffer buf)))))
+
 (defun mvtn--goto-title ()
   "Go to the beginning of the title of the current buffers note.
 Looks for '#+TITLE: ' in org-mode, the first heading starting
