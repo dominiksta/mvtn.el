@@ -10,6 +10,7 @@
 
 (require 'mvtn)
 (require 'mvtn-link-buttons)
+(require 'mvtn-file-helpers)
 (require 'org)
 
 
@@ -98,7 +99,7 @@ is emitting."
         (mvtn-backlink-buffer-mode)
         (read-only-mode 0)
         (erase-buffer)
-        (insert (format "*%s*\n" (substring mvtn-backlink-buffer--title 16)))
+        (insert (format "*%s*\n" mvtn-backlink-buffer--title))
         (insert "==============================\n\n")
         (cond ((= (length parsed) 0) (insert "No Backlinks found."))
               ((= (length parsed) 1) (insert (format "%d Backlink:\n\n"
@@ -135,8 +136,7 @@ Searches for the regexp STRING."
   (when (not (member mvtn-search-async-command '(grep rg)))
     (error "Invalid value of `mvtn-search-async-command': %s"
            mvtn-search-async-command))
-  (setq mvtn-backlink-buffer--title
-        (mvtn--extract-note-identity (buffer-file-name) t))
+  (setq mvtn-backlink-buffer--title (mvtn-current-buffer-title))
   (let ((default-directory (plist-get (car mvtn-note-directories) :dir)))
     (make-process
      :name "mvnt-backlink-search"
