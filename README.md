@@ -55,12 +55,20 @@ concepts:
     seperate project that would add a datase index to mvtn. I don't really plan
     on doing that though, so if you need a graph view, then mvtn is not for you.
 
+### Performance
+
+Obviously, the perfmance of mvtn will depend on the amount of notes that you
+take. However, even if you are a very heavy note taker, everything should still
+be reasonably fast. If you want to read more about the performance or test it
+yourself, a note generator is available at
+[dominiksta/mvtn.el-performance-test](https://github.com/dominiksta/mvtn.el-performance-test).
+
 ## Todo-list before release
 
 - [ ] Write a thourough documentation in texinfo format
-- [ ] Performance test with a large amount of generated notes. While the
-      performance with my personal notes is fine (~200 notes), this is not a
-      good indication of performance.
+- [x] ~Performance test with a large amount of generated notes. While the
+      performance with my personal notes is fine (200 notes), this is not a
+      good indication of performance.~
 - [ ] Fail more gracefully when a single note does not have a proper id
 
 ## Installation
