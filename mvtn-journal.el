@@ -57,8 +57,8 @@ Also controls which template from
   "The tags for all new daily notes."
   :type '(list :value-type string) :group 'mvtn)
 
-(defun mvtn-journal-daily-for-time (time &optional encrypt open)
-  "Open the daily note for TIME, creating it if necessary.
+(defun mvtn-journal-daily-for-time (time create &optional encrypt open)
+  "Open the daily note for TIME, creating it if CREATE is non-nil.
 TIME is defined in the emacs-internal time format.  See
 `current-time' for the format.  A simple function to create such
 a timestamp is `encode-time'.  When the note does not yet exist
@@ -80,19 +80,23 @@ the file will be returned."
           (let ((file (mvtn-expand-note-name (car found))))
             (if open (find-file file) (find-file-noselect file))))
       (progn
-        (message "Creating new daily note for %s" date)
-        (let ((buf
-               (mvtn-create-new-file
-                id mvtn-journal-dir title
-                mvtn-journal-default-file-extension mvtn-journal-new-daily-tags
-                (mvtn-substitute-template
-                 (mvtn-template-for-extension
-                  mvtn-journal-default-file-extension
-                  mvtn-journal-file-extension-templates)
-                 title date id)
-                encrypt)))
-          (when open (switch-to-buffer buf))
-          buf)))))
+        (if create
+            (progn
+              (message "Creating new daily note for %s" date)
+              (let ((buf
+                     (mvtn-create-new-file
+                      id mvtn-journal-dir title
+                      mvtn-journal-default-file-extension
+                      mvtn-journal-new-daily-tags
+                      (mvtn-substitute-template
+                       (mvtn-template-for-extension
+                        mvtn-journal-default-file-extension
+                        mvtn-journal-file-extension-templates)
+                       title date id)
+                      encrypt)))
+                (when open (switch-to-buffer buf))
+                buf))
+          nil)))))
 
 (defun mvtn-journal-open-daily-past-relative (n &optional encrypt)
   "Open the daily note for N days in the past.
@@ -101,13 +105,13 @@ be encrypted with gpg."
   (interactive)
   (let* ((target-time (seconds-to-time (- (time-to-seconds)
                                           (* 60 (* 60 (* 24 n)))))))
-    (mvtn-journal-daily-for-time target-time encrypt t)))
+    (mvtn-journal-daily-for-time target-time t encrypt t)))
 
 (defun mvtn-journal-new-entry-for-time (time text &optional encrypt)
   "Insert TEXT at a new entry at TIME in the daily note for TIME.
 If ENCRYPT is specified and the daily note for TIME does not yet
 exist, if will be encrypted with gpg."
-  (mvtn-journal-daily-for-time time encrypt t)
+  (mvtn-journal-daily-for-time time t encrypt t)
   (goto-char (point-max))
   (insert "\n"
           (format-time-string (mvtn-template-for-extension
