@@ -103,32 +103,25 @@ inserted in the minibuffer."
                                     (add-all
                                      "add")
                                     (t (mvtn--cv-multiaction-tag-prompt el)))))
-            (message user-answer)
-            ;; Continue w/o adding this supplied taga
-            (cond ((string= user-answer "continue")
-                   (message "c was chosen"))
+            ;; Continue w/o adding this supplied tags
+            (cond ((string= user-answer "continue"))
                   ;; Add this supplied tag to cv
                   ((string= user-answer "add")
-                   (message "a was chosen")
                    (mvtn-cv-write-tag-to-file el))
                   ;; Edit supplied tag list
                   ((string= user-answer "edit")
-                   (message "e was chosen")
                    (setq answer (mvtn-cv-prompt-for-tags
-                                 (mapconcat 'identity answer ", ")))
+                                 (mapconcat 'identity answer ",")))
                    ;; Exit recursion
                    (throw 'ret answer))
                   ;; Remove from supplied tag list
                   ((string= user-answer "remove")
-                   (message "r was chosen")
                    (delete el answer))
                   ;; Continue w/o adding any supplied tag to cv
                   ((string= user-answer "continue all")
-                   (message "C was chosen")
                    (setq continue-all t))
                   ;; Add all supplied tags to cv
                   ((string= user-answer "add all")
-                   (message "A was chosen")
                    (mvtn-cv-write-tag-to-file el)
                    (setq add-all t))))))
       answer)))
