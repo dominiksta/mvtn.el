@@ -58,9 +58,26 @@ description after two colons (:)."
 (defun mvtn-cv-read-tags-from-file ()
   "Return a list of tags specified in `mvtn-cv-file'."
   (mapcar (lambda (el) (save-match-data
-                    (string-match "\\([^ ]+\\) +:: \\(.+\\)" el)
-                    (match-string-no-properties 1 el)))
+                         (string-match "\\([^ ]+\\)[[:blank:]]*::[[:blank:]]*\\(.*\\)" el)
+                         (match-string-no-properties 1 el)))
           (split-string (mvtn--get-string-from-file mvtn-cv-file) "\n")))
+
+(defun mvtn-cv-write-tag-to-file (tag)
+  "Write a new tage into `mvtn-cv-file'."
+  (write-region (concat "\n" tag " ::") nil mvtn-cv-file t))
+
+(defun mvtn--cv-multiaction-tag-prompt (el)
+  "Prompts for action regarding tags which aren't specified in `mvtn-cv-file'"
+  (read-answer
+   (concat "'" el "' is not in your controlled vocabulary. "
+           "What would you like to do? ")
+   '(("continue" ?c "Continue w/o adding tag to existing vocabulary file")
+     ("add" ?a "Continue and add tag to existing vocabulary file")
+     ("edit" ?e "Edit the tag list")
+     ("remove"  ?r "Remove this tag")
+     ("continue all" ?C "Perform yes action for all further unknown tags")
+     ("add all" ?A "Perform add action for all further unknown tags")
+     ("help" ?h "Show help"))))
 
 ;;;###autoload
 (defun mvtn-cv-prompt-for-tags (initial)
@@ -69,18 +86,52 @@ When a tag is not in the controlled vocabulary, the user is asked
 wether they want to continue with the potentially incorrect tags
 or try entering their tags again.  INITIAL will already be
 inserted in the minibuffer."
-  (when (not (file-exists-p mvtn-cv-file))
-    (error "%s does not exist.  Please create it" mvtn-cv-file))
-  (let* ((cv (mvtn-cv-read-tags-from-file))
-         (answer (completing-read-multiple "Tags (comma-separated): " cv
-                                           nil nil initial))
-         (continue t))
-    (dolist (el answer)
-      (if (and (not (member el cv))
-               (not (y-or-n-p (concat "'" el "' is not in your controlled vocabulary. "
-                                      "Continue anyway?"))))
-          (setq continue nil)))
-    (if continue answer (mvtn-cv-prompt-for-tags initial))))
+  ;; Allow for arbitrary return
+  (catch 'ret
+    (when (not (file-exists-p mvtn-cv-file))
+      (error "%s does not exist.  Please create it" mvtn-cv-file))
+    (let* ((cv (mvtn-cv-read-tags-from-file))
+           (answer (completing-read-multiple "Tags (comma-separated): " cv
+                                             nil nil initial))
+           (continue-all nil)
+           (add-all nil))
+      (dolist (el answer)
+        (unless (member el cv)
+          (let* ((read-answer-short t)
+                 (user-answer (cond (continue-all
+                                     "continue")
+                                    (add-all
+                                     "add")
+                                    (t (mvtn--cv-multiaction-tag-prompt el)))))
+            (message user-answer)
+            ;; Continue w/o adding this supplied taga
+            (cond ((string= user-answer "continue")
+                   (message "c was chosen"))
+                  ;; Add this supplied tag to cv
+                  ((string= user-answer "add")
+                   (message "a was chosen")
+                   (mvtn-cv-write-tag-to-file el))
+                  ;; Edit supplied tag list
+                  ((string= user-answer "edit")
+                   (message "e was chosen")
+                   (setq answer (mvtn-cv-prompt-for-tags
+                                 (mapconcat 'identity answer ", ")))
+                   ;; Exit recursion
+                   (throw 'ret answer))
+                  ;; Remove from supplied tag list
+                  ((string= user-answer "remove")
+                   (message "r was chosen")
+                   (delete el answer))
+                  ;; Continue w/o adding any supplied tag to cv
+                  ((string= user-answer "continue all")
+                   (message "C was chosen")
+                   (setq continue-all t))
+                  ;; Add all supplied tags to cv
+                  ((string= user-answer "add all")
+                   (message "A was chosen")
+                   (mvtn-cv-write-tag-to-file el)
+                   (setq add-all t))))))
+      answer)))
 
 ;; ----------------------------------------------------------------------
 ;; `mvtn-tag-file-list'
