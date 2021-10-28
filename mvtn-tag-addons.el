@@ -58,9 +58,42 @@ description after two colons (:)."
 (defun mvtn-cv-read-tags-from-file ()
   "Return a list of tags specified in `mvtn-cv-file'."
   (mapcar (lambda (el) (save-match-data
-                    (string-match "\\([^ ]+\\) +:: \\(.+\\)" el)
-                    (match-string-no-properties 1 el)))
+                         (string-match "\\([^ ]+\\)[[:blank:]]*::[[:blank:]]*\\(.*\\)" el)
+                         (match-string-no-properties 1 el)))
           (split-string (mvtn--get-string-from-file mvtn-cv-file) "\n")))
+
+(defun mvtn-cv-write-tag-to-file (tag &optional description)
+  "Write a new TAG into `mvtn-cv-file' with DESCRIPTION."
+  (let* ((contents (mvtn--get-string-from-file mvtn-cv-file))
+         (newline-at-end (or (string= contents "")
+                             (string= (substring contents -1) "\n"))))
+    (write-region (concat (if newline-at-end nil "\n") tag " :: " description)
+                  nil mvtn-cv-file t)))
+
+(defun mvtn--cv-multiaction-tag-prompt (tag)
+  "Prompts for action for a TAG which is not specified in `mvtn-cv-file'."
+  (if (and (>= emacs-major-version 16)
+           (>= emacs-minor-version 2))
+      (read-answer
+       (concat "'" tag "' is not in your controlled vocabulary. "
+               "What would you like to do? ")
+       '(("continue" ?c "continue w/o adding tag to existing vocabulary file")
+         ("add" ?a "continue and add tag to existing vocabulary file")
+         ("edit" ?e "edit the tag list")
+         ("remove"  ?r "remove this tag")
+         ("continue all" ?C "perform yes action for all further unknown tags")
+         ("add all" ?A "perform add action for all further unknown tags")
+         ("help" ?h "show help")))
+    ;; Compatibility for Emacs 26.1
+    (nth 1 (read-multiple-choice
+            (concat "'" tag "' is not in your controlled vocabulary. "
+                    "What would you like to do? ")
+            '((?c "continue" "continue w/o adding tag to existing vocabulary file")
+              (?a "add" "continue and add tag to existing vocabulary file")
+              (?e "edit" "edit the tag list")
+              (?r "remove" "remove this tag")
+              (?C "continue all" "perform yes action for all further unknown tags")
+              (?A "add all" "perform add action for all further unknown tags"))))))
 
 ;;;###autoload
 (defun mvtn-cv-prompt-for-tags (initial)
@@ -69,18 +102,47 @@ When a tag is not in the controlled vocabulary, the user is asked
 wether they want to continue with the potentially incorrect tags
 or try entering their tags again.  INITIAL will already be
 inserted in the minibuffer."
-  (when (not (file-exists-p mvtn-cv-file))
-    (error "%s does not exist.  Please create it" mvtn-cv-file))
-  (let* ((cv (mvtn-cv-read-tags-from-file))
-         (answer (completing-read-multiple "Tags (comma-separated): " cv
-                                           nil nil initial))
-         (continue t))
-    (dolist (el answer)
-      (if (and (not (member el cv))
-               (not (y-or-n-p (concat "'" el "' is not in your controlled vocabulary. "
-                                      "Continue anyway?"))))
-          (setq continue nil)))
-    (if continue answer (mvtn-cv-prompt-for-tags initial))))
+  ;; Allow for arbitrary return
+  (catch 'ret
+    (when (not (file-exists-p mvtn-cv-file))
+      (mkdir (file-name-directory mvtn-cv-file) t)
+      (write-region "" nil mvtn-cv-file t))
+    (let* ((cv (mvtn-cv-read-tags-from-file))
+           (taglist (completing-read-multiple "Tags (comma-separated): " cv
+                                              nil nil initial))
+           (continue-all nil)
+           (add-all nil)
+           (prompt-desc (lambda (tag) (read-from-minibuffer
+                                  (format "Description for new tag (%s): "
+                                          tag)))))
+      (dolist (tag taglist)
+        (unless (member tag cv)
+          (let* ((read-answer-short t)
+                 (user-answer (cond (continue-all "continue")
+                                    (add-all "add")
+                                    (t (mvtn--cv-multiaction-tag-prompt tag)))))
+            ;; Continue w/o adding this supplied tags
+            (cond ((string= user-answer "continue"))
+                  ;; Add this supplied tag to cv
+                  ((string= user-answer "add")
+                   (mvtn-cv-write-tag-to-file tag (funcall prompt-desc tag)))
+                  ;; Edit supplied tag list
+                  ((string= user-answer "edit")
+                   (setq taglist (mvtn-cv-prompt-for-tags
+                                  (mapconcat 'identity taglist ",")))
+                   ;; Exit recursion
+                   (throw 'ret taglist))
+                  ;; Remove from supplied tag list
+                  ((string= user-answer "remove")
+                   (setq taglist (delete tag taglist)))
+                  ;; Continue w/o adding any supplied tag to cv
+                  ((string= user-answer "continue all")
+                   (setq continue-all t))
+                  ;; Add all supplied tags to cv
+                  ((string= user-answer "add all")
+                   (mvtn-cv-write-tag-to-file tag (funcall prompt-desc tag))
+                   (setq add-all t))))))
+      taglist)))
 
 ;; ----------------------------------------------------------------------
 ;; `mvtn-tag-file-list'
