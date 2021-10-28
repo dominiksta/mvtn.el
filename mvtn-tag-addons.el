@@ -159,6 +159,7 @@ With a prefix argument (or setting ALL to non-nil), ignore
     (with-current-buffer buffer
       (mvtn-tag-file-list-mode)
       (mvtn--tag-file-list-refresh)
+      (setq-local tabulated-list-sort-key '("ID" . t))
       (tabulated-list-print))
     (display-buffer buffer))
   nil)
