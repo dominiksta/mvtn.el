@@ -101,7 +101,8 @@ inserted in the minibuffer."
   ;; Allow for arbitrary return
   (catch 'ret
     (when (not (file-exists-p mvtn-cv-file))
-      (error "%s does not exist.  Please create it" mvtn-cv-file))
+      (mkdir (file-name-directory mvtn-cv-file) t)
+      (write-region "" nil mvtn-cv-file t))
     (let* ((cv (mvtn-cv-read-tags-from-file))
            (taglist (completing-read-multiple "Tags (comma-separated): " cv
                                               nil nil initial))
