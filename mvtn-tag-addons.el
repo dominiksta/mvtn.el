@@ -72,7 +72,7 @@ description after two colons (:)."
 
 (defun mvtn--cv-multiaction-tag-prompt (tag)
   "Prompts for action for a TAG which is not specified in `mvtn-cv-file'."
-  (if (and (>= emacs-major-version 16)
+  (if (and (>= emacs-major-version 26)
            (>= emacs-minor-version 2))
       (read-answer
        (concat "'" tag "' is not in your controlled vocabulary. "
