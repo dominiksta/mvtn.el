@@ -64,7 +64,11 @@ description after two colons (:)."
 
 (defun mvtn-cv-write-tag-to-file (tag &optional description)
   "Write a new TAG into `mvtn-cv-file' with DESCRIPTION."
-  (write-region (concat "\n" tag " :: " description) nil mvtn-cv-file t))
+  (let* ((contents (mvtn--get-string-from-file mvtn-cv-file))
+         (newline-at-end (or (string= contents "")
+                             (string= (substring contents -1) "\n"))))
+    (write-region (concat (if newline-at-end nil "\n") tag " :: " description)
+                  nil mvtn-cv-file t)))
 
 (defun mvtn--cv-multiaction-tag-prompt (tag)
   "Prompts for action regarding tags which aren't specified in `mvtn-cv-file'"
