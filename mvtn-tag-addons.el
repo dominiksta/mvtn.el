@@ -62,9 +62,9 @@ description after two colons (:)."
                          (match-string-no-properties 1 el)))
           (split-string (mvtn--get-string-from-file mvtn-cv-file) "\n")))
 
-(defun mvtn-cv-write-tag-to-file (tag)
-  "Write a new tage into `mvtn-cv-file'."
-  (write-region (concat "\n" tag " ::") nil mvtn-cv-file t))
+(defun mvtn-cv-write-tag-to-file (tag &optional description)
+  "Write a new TAG into `mvtn-cv-file' with DESCRIPTION."
+  (write-region (concat "\n" tag " :: " description) nil mvtn-cv-file t))
 
 (defun mvtn--cv-multiaction-tag-prompt (tag)
   "Prompts for action regarding tags which aren't specified in `mvtn-cv-file'"
@@ -106,20 +106,21 @@ inserted in the minibuffer."
            (taglist (completing-read-multiple "Tags (comma-separated): " cv
                                               nil nil initial))
            (continue-all nil)
-           (add-all nil))
+           (add-all nil)
+           (prompt-desc (lambda (tag) (read-from-minibuffer
+                                  (format "Description for new tag (%s): "
+                                          tag)))))
       (dolist (tag taglist)
         (unless (member tag cv)
           (let* ((read-answer-short t)
-                 (user-answer (cond (continue-all
-                                     "continue")
-                                    (add-all
-                                     "add")
+                 (user-answer (cond (continue-all "continue")
+                                    (add-all "add")
                                     (t (mvtn--cv-multiaction-tag-prompt tag)))))
             ;; Continue w/o adding this supplied tags
             (cond ((string= user-answer "continue"))
                   ;; Add this supplied tag to cv
                   ((string= user-answer "add")
-                   (mvtn-cv-write-tag-to-file tag))
+                   (mvtn-cv-write-tag-to-file tag (funcall prompt-desc tag)))
                   ;; Edit supplied tag list
                   ((string= user-answer "edit")
                    (setq taglist (mvtn-cv-prompt-for-tags
@@ -134,7 +135,7 @@ inserted in the minibuffer."
                    (setq continue-all t))
                   ;; Add all supplied tags to cv
                   ((string= user-answer "add all")
-                   (mvtn-cv-write-tag-to-file tag)
+                   (mvtn-cv-write-tag-to-file tag (funcall prompt-desc tag))
                    (setq add-all t))))))
       taglist)))
 
