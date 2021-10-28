@@ -71,7 +71,7 @@ description after two colons (:)."
                   nil mvtn-cv-file t)))
 
 (defun mvtn--cv-multiaction-tag-prompt (tag)
-  "Prompts for action regarding tags which aren't specified in `mvtn-cv-file'"
+  "Prompts for action for a TAG which is not specified in `mvtn-cv-file'."
   (if (and (>= emacs-major-version 16)
            (>= emacs-minor-version 2))
       (read-answer
