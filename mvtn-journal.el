@@ -261,7 +261,7 @@ important than journaling."
 ;; ----------------------------------------------------------------------
 
 (defcustom mvtn-journal-autojournal-org-clock-in-note-format
-  "org-clock\n\nclock-in:%s: %s in %s\n"
+  "org-clock-in\n\nclock-in:%s: %s in %s\n"
   "The format for autojournal entries for org clock in events in mvtn notes.
 The first %s will be replaced by current timestamp, the second by
 the org task and the third by a link to the note.  See
@@ -270,7 +270,7 @@ the org task and the third by a link to the note.  See
   :type 'string :group 'mvtn)
 
 (defcustom mvtn-journal-autojournal-org-clock-out-note-format
-  "org-clock\n\nclock-out:%s: %s in %s\n"
+  "org-clock-out\n\nclock-out:%s: %s in %s\n"
   "The format for autojournal entries for org clock out events in mvtn notes.
 The first %s will be replaced by current timestamp, the second by
 the org task and the third by a link to the note.  See
@@ -312,7 +312,7 @@ journaling that event."
              (id+name (if is-note (mvtn--extract-note-identity
                                    buffer-file-name t)
                         nil))
-             (link (if is-note (format "^^%s^^" id+name)))
+             (link (if is-note (format "\"%s\"" id+name)))
              (time (format-time-string "%H:%M:%S"))
              (text (if in
                        (if is-note
