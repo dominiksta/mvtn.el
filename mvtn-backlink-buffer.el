@@ -205,6 +205,8 @@ Only runs said function if in `mvtn-minor-mode' and the
   'mvtn-backlink-buffer-next-backlink)
 (define-key mvtn-backlink-buffer-mode-map (kbd "p")
   'mvtn-backlink-buffer-previous-backlink)
+(define-key mvtn-backlink-buffer-mode-map (kbd "q")
+  'mvtn-backlink-buffer-toggle-side-window)
 
 ;;;###autoload
 (defun mvtn-backlink-buffer-toggle-side-window (action)
