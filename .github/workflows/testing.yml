@@ -34,6 +34,8 @@ jobs:
           - '26.2'
           - '26.3'
           - '27.1'
+          - '28.1'
+          - '28.2'
     steps:
       # Required to test against different emacs version
       - uses: purcell/setup-emacs@master
